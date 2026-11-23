@@ -417,6 +417,7 @@ function start(){
   let players=cfg.names.filter(Boolean);
   if(!players.length)players=['Jugador 1'];
   const p=pool();
+  if(st)clearTimeout(st.timer);
   if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
   const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
   const need=per*players.length,key=s=>s.p+s.ans;
@@ -452,11 +453,14 @@ function answer(b){
   $('res').textContent=ok?'¡Correcto! +1 punto':`¡Casi! Era «${s.ans}»`;
   const t=$('tape');t.classList.remove('spin');void t.offsetWidth;if(ok)t.classList.add('spin');
   $('hintBtn').hidden=true;
-  $('next').hidden=false;$('next').textContent=st.i+1<st.q.length?'Siguiente canción':'Ver resultados';
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente canción');
   $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
   $('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('');
 }
 function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
   st.i++;st.turn=(st.turn+1)%st.players.length;
   if(st.i<st.q.length){show();return}
   const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
