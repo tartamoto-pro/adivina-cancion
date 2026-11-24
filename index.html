@@ -337,7 +337,30 @@ const ES=[
 ["Estrella ","polar",["fugaz","de mar","del norte"],"Pereza",2009],
 ["Tiempos nuevos, tiempos ","salvajes",["mejores","difíciles","modernos"],"Ilegales",1984],
 ["Dulce ","condena",["locura","mentira","venganza"],"Los Rodríguez",1995],
-["Los días ","raros",["grises","felices","de lluvia"],"Vetusta Morla",2011]];
+["Los días ","raros",["grises","felices","de lluvia"],"Vetusta Morla",2011],
+["Quédate en ","Madrid",["casa","Sevilla","la cama"],"Mecano",1988],
+["Naturaleza ","muerta",["viva","salvaje","dormida"],"Mecano",1991],
+["Deseos de cosas ","imposibles",["bonitas","pequeñas","raras"],"La Oreja de Van Gogh",2003],
+["Muñeca de ","trapo",["porcelana","papel","cristal"],"La Oreja de Van Gogh",2006],
+["Marta, Sebas, Guille y los ","demás",["otros","míos","tuyos"],"Amaral",2000],
+["Puede ","ser",["que sí","volver","esperar"],"El Canto del Loco",2004],
+["Quisiera ","ser",["volar","saber","tenerte"],"Alejandro Sanz",2000],
+["Los dos cogidos de la ","mano",["cintura","luna","calle"],"Alejandro Sanz",1991],
+["Calle la ","pantomima",["mentira","alegría","esperanza"],"Melendi",2003],
+["Cacho a ","cacho",["poco","trozo","paso"],"Estopa",1999],
+["Ya no me ","acuerdo",["quieres","llamas","importa"],"Estopa",2001],
+["Lunas ","rotas",["llenas","nuevas","de plata"],"Rosana",1996],
+["Moscas en la ","casa",["sopa","cocina","ventana"],"Shakira",1998],
+["Volverte a ","ver",["llamar","besar","encontrar"],"Juanes",2004],
+["Clavado en un ","bar",["árbol","tren","rincón"],"Maná",1997],
+["Mariposa ","traicionera",["azul","bonita","nocturna"],"Maná",2002],
+["Pienso en tu ","mirá",["boca","voz","casa"],"Rosalía",2018],
+["Dónde está el ","amor",["mar","tesoro","verano"],"Pablo Alborán y Jesse & Joy",2013],
+["Lo saben mis ","zapatos",["amigos","ojos","vecinos"],"Pablo López",2015],
+["Cuando los sapos bailen ","flamenco",["salsa","tango","en la luna"],"Ella Baila Sola",1996],
+["Jardín de ","rosas",["flores","invierno","colores"],"Duncan Dhu",1987],
+["La lista de la ","compra",["clase","fiesta","semana"],"La Cabra Mecánica",2000],
+["Física o ","química",["matemáticas","magia","historia"],"Despistaos",2008]];
 const EN=[
 ["Livin' on a ","Prayer",["Dream","Highway","Rainbow"],"Bon Jovi",1986],
 ["Another One Bites the ","Dust",["Bullet","Floor","Apple"],"Queen",1980],
@@ -400,8 +423,9 @@ const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 
 let mine=load('qpf-mine',[]);
-let cfg=load('qpf-cfg',{eras:["80","90","00","10"],langs:["es","en","mine"],len:15,names:["Jugador 1","Jugador 2","",""]});
+let cfg=load('qpf-cfg',{eras:["80","90","00","10"],langs:["es","mine"],len:5,v:2,names:["Jugador 1","Jugador 2","",""]});
 if(!LENS.includes(cfg.len))cfg.len=5;
+if(cfg.v!==2){cfg.langs=cfg.langs.filter(l=>l!=='en');if(!cfg.langs.includes('es'))cfg.langs.push('es');cfg.v=2}
 let st=null;
 
 function chips(el,list,isOn,toggle){
