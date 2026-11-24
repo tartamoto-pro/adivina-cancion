@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preguntas de Pokémon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: concurso familiar de aventuras, alegre, se lee rápido
+   IDEA: una consola portátil antigua: la pregunta sale en su pantalla verde
+   PICTURE: la carcasa con la pantalla LCD y su piloto, botones grandes debajo
+   COLOUR and TYPE: carcasa morada, pantalla verde LCD, botones amarillos; Press Start 2P en títulos, Nunito para leer
+   LAYOUT: una columna: marcador, consola, 4 botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:light-dark(#efe9ff,#17122e);--shell:#5b4bb7;--shell2:#463a96;--lcd:#c5d98c;--lcd2:#a9c06a;--lcdink:#26331a;--btn:#ffd23f;--ink:#1d1838;--on:light-dark(#1d1838,#f3efff);--ok:#2fb35a;--bad:#e2463c;--panel:light-dark(#ffffff,#241c45);--muted:light-dark(#5d5780,#b8b0dd)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:"Press Start 2P",monospace;font-weight:400;line-height:1.3;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(18px,4.6vw,26px);color:var(--shell)}
+:root[data-theme=dark] h1{color:#b9adff}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) h1{color:#b9adff}}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 18px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--btn);outline-offset:2px}
+.ghost{background:var(--shell);color:#fff;font-weight:800}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pl{flex:1 1 120px;background:var(--panel);border-radius:12px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800;box-shadow:0 2px 0 #0002}
+.pl b{font-family:"Press Start 2P";font-size:18px}
+.pl.now{border-color:var(--shell)}
+.turn{font-weight:800;color:var(--shell);margin:0 0 8px;font-size:18px}
+:root[data-theme=dark] .turn{color:#b9adff}
+.console{background:var(--shell);border-radius:20px 20px 48px 20px;padding:18px 18px 22px;box-shadow:0 8px 0 var(--shell2)}
+.bezel{background:#2b2550;border-radius:10px 10px 30px 10px;padding:14px 16px 18px}
+.led{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#bdb6e6;margin-bottom:8px}
+.led i{width:10px;height:10px;border-radius:50%;background:#ff4f6d;box-shadow:0 0 8px #ff4f6d}
+.screen{background:var(--lcd);color:var(--lcdink);border-radius:6px;padding:16px;background-image:repeating-linear-gradient(0deg,#0000 0 3px,#0000000d 3px 4px);box-shadow:inset 0 0 0 3px var(--lcd2)}
+.meta{font-size:14px;font-weight:800;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;opacity:.8}
+.q{font-weight:800;font-size:clamp(22px,5.4vw,30px);line-height:1.2;margin:10px 0 4px;text-wrap:balance}
+.fact{font-size:16px;min-height:24px;margin:0;font-weight:600}
+.brand{margin:10px 4px 0;font-family:"Press Start 2P";font-size:11px;color:#d9d3ff;opacity:.85}
+.bounce{animation:bn .5s ease 1}
+@keyframes bn{40%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.bounce{animation:none}}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.opt{background:var(--btn);color:var(--ink);font-weight:800;font-size:clamp(17px,4.2vw,21px);line-height:1.2;min-height:76px;border-radius:16px;box-shadow:0 5px 0 #c9a019;transition:transform .1s}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #c9a019}
+.opt.good{background:var(--ok);color:#fff;box-shadow:0 5px 0 #1f7d3e}
+.opt.bad{background:var(--bad);color:#fff;box-shadow:0 5px 0 #a42d25}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 160px}
+.go{background:var(--shell);color:#fff;font-family:"Press Start 2P";font-size:14px;line-height:1.4;box-shadow:0 5px 0 var(--shell2)}
+.res{font-family:"Press Start 2P";font-size:15px;text-align:center;min-height:30px;margin:16px 0 0;color:var(--shell)}
+:root[data-theme=dark] .res{color:#b9adff}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:16px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--shell);color:#fff;border-color:var(--shell)}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.end{text-align:center}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--btn);color:var(--ink)}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:12px}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}.console{padding:14px 14px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Preguntas de Pokémon</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="newGame">Nueva partida</button></span>
+  </header>
+
+  <section id="game">
+    <div class="score" id="score"></div>
+    <p class="turn" id="turn"></p>
+    <div class="console" id="blk">
+      <div class="bezel">
+        <div class="led"><i></i>Pilas</div>
+        <div class="screen">
+          <div class="meta"><span id="num"></span><span id="cat"></span></div>
+          <p class="q" id="q"></p>
+          <p class="fact" id="fact"></p>
+        </div>
+      </div>
+      <p class="brand">Concurso de entrenadores</p>
+    </div>
+    <div class="opts" id="opts"></div>
+    <p class="res" id="res" aria-live="polite"></p>
+    <div class="row"><button class="go" id="next" hidden>Siguiente</button></div>
+  </section>
+
+  <section id="end" class="end" hidden>
+    <div class="console"><div class="bezel"><div class="screen"><p class="q" id="winner"></p><p class="fact">Fin de la partida</p></div></div></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Temas</label>
+    <div class="chips" id="cats"></div>
+    <label>Dificultad</label>
+    <div class="chips" id="lvls"></div>
+    <label>Preguntas para cada jugador</label>
+    <div class="chips" id="lens"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note" id="count"></p>
+  </section>
+  <p class="note">Juego de preguntas hecho por fans para jugar en familia; no es un producto oficial de Pokémon. Los nombres son los de los juegos en España.</p>
+</div>
+
+<script>
+{
+// [pregunta, respuesta, [falsas], tema, nivel 1=fácil 2=difícil]
+const Q=[
+["¿De qué tipo es Pikachu?","Eléctrico",["Fuego","Normal","Hada"],"pkmn",1],
+["¿En qué evoluciona Pikachu?","Raichu",["Pichu","Plusle","Jolteon"],"pkmn",1],
+["¿Cuál es la preevolución de Pikachu?","Pichu",["Raichu","Pachirisu","Emolga"],"pkmn",1],
+["¿Qué piedra hace evolucionar a Pikachu?","Piedra trueno",["Piedra fuego","Piedra lunar","Piedra hoja"],"pkmn",2],
+["¿En qué evoluciona Charmander?","Charmeleon",["Charizard","Vulpix","Growlithe"],"pkmn",1],
+["¿De qué tipos es Charizard?","Fuego y Volador",["Fuego y Dragón","Solo Fuego","Dragón y Volador"],"pkmn",2],
+["¿Cuál es la última evolución de Squirtle?","Blastoise",["Wartortle","Gyarados","Lapras"],"pkmn",1],
+["¿Cuál es la última evolución de Bulbasaur?","Venusaur",["Ivysaur","Victreebel","Meganium"],"pkmn",1],
+["¿Qué Pokémon es el número 1 de la Pokédex?","Bulbasaur",["Pikachu","Mew","Charmander"],"pkmn",1],
+["¿Qué Pokémon es el número 25 de la Pokédex?","Pikachu",["Eevee","Jigglypuff","Meowth"],"pkmn",2],
+["¿Cuántas evoluciones distintas tiene Eevee?","8",["3","5","10"],"pkmn",2],
+["¿Qué evolución de Eevee es de tipo Agua?","Vaporeon",["Jolteon","Flareon","Glaceon"],"pkmn",1],
+["¿Qué evolución de Eevee es de tipo Hada?","Sylveon",["Espeon","Leafeon","Umbreon"],"pkmn",2],
+["¿En qué evoluciona Magikarp?","Gyarados",["Goldeen","Milotic","Seaking"],"pkmn",1],
+["¿Qué Pokémon enorme duerme casi todo el día y tapa caminos?","Snorlax",["Slowpoke","Wailord","Jigglypuff"],"pkmn",1],
+["¿Qué Pokémon duerme a los demás cantando?","Jigglypuff",["Chansey","Clefairy","Psyduck"],"pkmn",1],
+["¿Qué Pokémon puede transformarse en cualquier otro?","Ditto",["Mew","Zorua","Smeargle"],"pkmn",1],
+["¿Qué Pokémon legendario se creó a partir de Mew?","Mewtwo",["Celebi","Deoxys","Genesect"],"pkmn",1],
+["¿Qué Pokémon se esconde bajo un disfraz de Pikachu?","Mimikyu",["Zorua","Ditto","Pachirisu"],"pkmn",2],
+["¿Qué Pokémon evoluciona en Gengar?","Haunter",["Gastly","Misdreavus","Duskull"],"pkmn",2],
+["¿Cómo evoluciona Haunter a Gengar en los juegos?","Intercambiándolo",["Con una piedra noche","Subiendo de nivel","Con mucha amistad"],"pkmn",2],
+["¿Qué legendario es el pájaro de hielo?","Articuno",["Zapdos","Moltres","Lugia"],"pkmn",1],
+["¿Qué legendario es el pájaro de fuego?","Moltres",["Articuno","Zapdos","Lugia"],"pkmn",1],
+["¿Qué legendario es el pájaro eléctrico?","Zapdos",["Articuno","Moltres","Ho-Oh"],"pkmn",1],
+["¿Qué Pokémon creó el universo según la historia de Sinnoh?","Arceus",["Dialga","Palkia","Giratina"],"pkmn",2],
+["¿Qué legendario controla el tiempo?","Dialga",["Palkia","Giratina","Darkrai"],"pkmn",2],
+["¿Qué legendario controla el espacio?","Palkia",["Dialga","Giratina","Rayquaza"],"pkmn",2],
+["¿Qué dragón verde vive en el cielo y calma a Groudon y Kyogre?","Rayquaza",["Lugia","Zygarde","Latios"],"pkmn",2],
+["¿Qué legendario creó los mares?","Kyogre",["Groudon","Lugia","Suicune"],"pkmn",2],
+["¿Qué pato amarillo siempre tiene dolor de cabeza?","Psyduck",["Farfetch'd","Ducklett","Golduck"],"pkmn",1],
+["¿Qué Pokémon lleva siempre un puerro?","Farfetch'd",["Psyduck","Ducklett","Pidgey"],"pkmn",2],
+["¿Qué Pokémon es una roca con brazos?","Geodude",["Onix","Roggenrola","Sudowoodo"],"pkmn",1],
+["¿Qué Pokémon es una serpiente gigante hecha de rocas?","Onix",["Ekans","Steelix","Seviper"],"pkmn",1],
+["¿En qué evoluciona Onix?","Steelix",["Golem","Rhydon","Tyranitar"],"pkmn",2],
+["¿Qué Pokémon era el número 151 en la primera generación?","Mew",["Mewtwo","Dragonite","Celebi"],"pkmn",2],
+["¿Qué tipo es fuerte contra el tipo Fuego?","Agua",["Planta","Bicho","Hielo"],"tipos",1],
+["¿Qué tipo es fuerte contra el tipo Agua?","Planta",["Fuego","Roca","Tierra"],"tipos",1],
+["¿Qué tipo es fuerte contra el tipo Planta?","Fuego",["Agua","Tierra","Eléctrico"],"tipos",1],
+["¿A qué tipo no le hacen nada los ataques eléctricos?","Tierra",["Agua","Volador","Acero"],"tipos",1],
+["¿A qué tipo no le hacen nada los ataques de tipo Normal?","Fantasma",["Roca","Acero","Psíquico"],"tipos",2],
+["¿Qué tipo no recibe daño de los ataques de tipo Dragón?","Hada",["Hielo","Acero","Fuego"],"tipos",2],
+["¿Qué tipo es muy eficaz contra el tipo Dragón?","Hielo",["Fuego","Agua","Eléctrico"],"tipos",2],
+["¿Qué tipo es muy eficaz contra el tipo Volador?","Eléctrico",["Lucha","Bicho","Planta"],"tipos",2],
+["¿Contra qué tipo es muy eficaz el tipo Lucha?","Normal",["Fantasma","Psíquico","Volador"],"tipos",2],
+["¿Cuántos tipos de Pokémon hay?","18",["12","15","20"],"tipos",2],
+["¿Qué tipo fue el último en añadirse a los juegos?","Hada",["Siniestro","Acero","Dragón"],"tipos",2],
+["¿Cuántos movimientos puede saber un Pokémon a la vez?","4",["2","6","8"],"tipos",1],
+["¿Cuántos Pokémon puedes llevar en tu equipo?","6",["4","5","8"],"tipos",1],
+["¿Qué le pasa a un Pokémon cuando se queda sin PS?","Se debilita",["Se escapa","Evoluciona","Desaparece"],"tipos",1],
+["¿Qué objeto básico recupera PS a tu Pokémon?","Poción",["Antídoto","Repelente","Cuerda huida"],"tipos",1],
+["¿Qué objeto cura el envenenamiento?","Antídoto",["Poción","Despertar","Antiparalizador"],"tipos",1],
+["¿Qué Poké Ball atrapa a cualquier Pokémon sin fallar?","Master Ball",["Ultra Ball","Super Ball","Poké Ball"],"tipos",1],
+["¿Qué problema de estado hace que a veces no puedas moverte?","Parálisis",["Quemadura","Envenenamiento","Confusión"],"tipos",2],
+["¿Qué hace el movimiento Salpicadura de Magikarp?","Nada",["Mucho daño","Te cura","Duerme al rival"],"tipos",1],
+["¿De qué tipo es el ataque Lanzallamas?","Fuego",["Dragón","Normal","Lucha"],"tipos",1],
+["¿De qué tipo es el ataque Rayo?","Eléctrico",["Fuego","Normal","Psíquico"],"tipos",1],
+["¿Cómo se llama el protagonista del anime clásico?","Ash Ketchum",["Gary Oak","Red","Brock"],"anime",1],
+["¿Cuál es el primer Pokémon de Ash en el anime?","Pikachu",["Charmander","Squirtle","Eevee"],"anime",1],
+["¿De qué pueblo es Ash?","Pueblo Paleta",["Ciudad Verde","Ciudad Celeste","Pueblo Lavanda"],"anime",1],
+["¿Qué profesor da los Pokémon iniciales en Kanto?","Profesor Oak",["Profesor Elm","Profesor Abedul","Profesor Serbal"],"anime",1],
+["¿Cómo se llaman los malos que van con un Meowth que habla?","Team Rocket",["Team Magma","Team Plasma","Team Galaxia"],"anime",1],
+["¿Qué Pokémon del Team Rocket habla como una persona?","Meowth",["Wobbuffet","Ekans","Koffing"],"anime",1],
+["¿Qué líder de gimnasio usa Pokémon de tipo Agua en Ciudad Celeste?","Misty",["Brock","Erika","Sabrina"],"anime",1],
+["¿Qué líder de gimnasio usa Pokémon de tipo Roca en Ciudad Plateada?","Brock",["Misty","Lt. Surge","Blaine"],"anime",1],
+["¿Cuántas medallas necesitas para ir a la Liga Pokémon?","8",["6","10","12"],"anime",1],
+["¿Cómo se llama la enfermera de los Centros Pokémon?","Enfermera Joy",["Agente Jenny","Enfermera Misty","Doctora Ivy"],"anime",1],
+["¿Cómo se llama la policía del anime?","Agente Jenny",["Enfermera Joy","Delia","Jessie"],"anime",2],
+["¿Cómo se llaman los cuatro mejores entrenadores antes del campeón?","Alto Mando",["Élite Plateada","Los Líderes","Los Guardianes"],"anime",2],
+["¿En qué año ganó Ash por fin el campeonato mundial en el anime?","2022",["2016","2019","2025"],"anime",2],
+["¿Qué aparato te da información de cada Pokémon?","Pokédex",["Pokégear","Bicicleta","Repartir Exp."],"anime",1],
+["¿Cómo se llama la región de los primeros juegos?","Kanto",["Johto","Hoenn","Sinnoh"],"juegos",1],
+["¿En qué país se inspira la región de Paldea?","España",["México","Italia","Grecia"],"juegos",1],
+["¿En qué país se inspira la región de Galar?","Reino Unido",["Francia","Japón","Alemania"],"juegos",2],
+["¿En qué país se inspira la región de Kalos?","Francia",["Italia","Alemania","Reino Unido"],"juegos",2],
+["¿En qué juegos se visita la región de Paldea?","Escarlata y Púrpura",["Espada y Escudo","Sol y Luna","Rojo y Azul"],"juegos",1],
+["¿Qué legendarios salen en la portada de Escarlata y Púrpura?","Koraidon y Miraidon",["Zacian y Zamazenta","Solgaleo y Lunala","Xerneas e Yveltal"],"juegos",2],
+["¿Qué juego de móvil te hace salir a la calle a cazar Pokémon?","Pokémon GO",["Pokémon Sleep","Pokémon Café","Pokémon Unite"],"juegos",1],
+["¿En qué año salió el primer juego de Pokémon en Japón?","1996",["1990","1999","2000"],"juegos",2],
+["¿Qué quiere decir el nombre «Pokémon»?","Monstruos de bolsillo",["Monstruos de poder","Mascotas monstruo","Monstruos mágicos"],"juegos",2],
+["¿Cuántos Pokémon había en la primera generación?","151",["100","150","251"],"juegos",2],
+["¿Cómo se llaman los Pokémon de otro color, muy difíciles de encontrar?","Variocolor",["Legendarios","Alfa","Mega"],"juegos",1],
+["¿Qué es la Megaevolución?","Una evolución que solo dura el combate",["Una evolución para siempre","Un cambio de tipo fijo","Hacerse gigante"],"juegos",2],
+["¿Qué hace gigantes a los Pokémon en Espada y Escudo?","Dinamax",["Megaevolución","Teracristalización","Movimiento Z"],"juegos",2],
+["¿Qué pone una corona de cristal a los Pokémon en Escarlata y Púrpura?","Teracristalización",["Dinamax","Megaevolución","Movimiento Z"],"juegos",2],
+["¿Dónde curas a tus Pokémon gratis?","Centro Pokémon",["Tienda","Gimnasio","Laboratorio"],"juegos",1],
+["¿Dónde compras Poké Balls en los juegos clásicos?","En la Tienda Pokémon",["En el Centro Pokémon","En el gimnasio","En el Alto Mando"],"juegos",1],
+["¿Con qué se atrapa a un Pokémon salvaje?","Con una Poké Ball",["Con una red","Con una caja","Con una cuerda"],"juegos",1],
+["¿Qué tienes que hacer antes de lanzar la Poké Ball para atraparlo mejor?","Bajarle los PS",["Curarlo","Darle una baya","Cambiar de Pokémon"],"juegos",1]];
+const CATS=[["pkmn","Pokémon y evoluciones"],["tipos","Tipos y combates"],["anime","Anime y entrenadores"],["juegos","Juegos y regiones"]];
+const LVLS=[["1","Fácil"],["2","Difícil"]];
+const LENS=[3,5,8,10];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
+let cfg=load('pk-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:5,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=5;
+let st=null;
+function chips(el,list,isOn,toggle){
+  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
+}
+const pool=()=>ALL.filter(s=>cfg.cats.includes(s.c)&&cfg.lvls.includes(s.l));
+function renderSetup(){
+  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
+  const all=()=>CATS.every(c=>cfg.cats.includes(c[0]));
+  chips($('cats'),[["all","Todos los temas"],...CATS],k=>k==='all'?all():cfg.cats.includes(k),k=>{if(k==='all')cfg.cats=all()?[]:CATS.map(c=>c[0]);else tg(cfg.cats,k)});
+  chips($('lvls'),LVLS,k=>cfg.lvls.includes(k),k=>tg(cfg.lvls,k));
+  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
+  const n=pool().length;
+  $('count').textContent=n?`Hay ${n} preguntas disponibles con estos ajustes.`:'Elige al menos un tema y una dificultad.';
+  save('pk-cfg',cfg);
+}
+const board=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function start(){
+  if(st)clearTimeout(st.timer);
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('pk-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  const p=pool();
+  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
+  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
+  const need=per*players.length;
+  let seen=load('pk-seen',[]);
+  const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
+  if(fresh.length<need){seen=[];save('pk-seen',seen)}
+  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,per};
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+function show(){
+  const s=st.q[st.i],n=st.players.length;
+  board();
+  $('turn').textContent=n>1?`Le toca a ${st.players[st.turn]}`:'';
+  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Pregunta ${st.i+1} de ${st.q.length}`;
+  $('cat').textContent=CATS.find(c=>c[0]===s.c)[1]+(s.l==='2'?' · difícil':'');
+  $('q').textContent=s.q;$('fact').textContent='';$('res').textContent='';$('next').hidden=true;
+  $('opts').innerHTML=shuffle([s.ans,...s.w]).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+function answer(b){
+  const s=st.q[st.i],ok=b.dataset.o===s.ans;
+  const seen=load('pk-seen',[]);if(!seen.includes(s.q)){seen.push(s.q);save('pk-seen',seen)}
+  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
+  if(!ok)b.classList.add('bad');else st.pts[st.turn]++;
+  $('fact').textContent='Respuesta: '+s.ans;
+  $('res').textContent=ok?'¡Correcto! +1 punto':'¡Casi!';
+  const k=$('blk');k.classList.remove('bounce');void k.offsetWidth;if(ok)k.classList.add('bounce');
+  board();
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente');
+  $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
+}
+function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
+  st.i++;st.turn=(st.turn+1)%st.players.length;
+  if(st.i<st.q.length){show();return}
+  $('next').hidden=true;
+  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
+  const tie=r.length>1&&r[0][1]===r[1][1];
+  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
+  $('game').hidden=true;$('end').hidden=false;
+}
+$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
+$('next').onclick=next;$('start').onclick=start;$('again').onclick=start;
+$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('pk-cfg',cfg)}));
+renderSetup();start();
+}
+</script>
+</body>
+</html>

@@ -16,11 +16,11 @@
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;min-height:100vh;overflow-x:clip}
-.wrap{max-width:900px;margin:0 auto;padding:clamp(24px,5vw,56px) max(4vw,16px)}
+.wrap{max-width:1000px;margin:0 auto;padding:clamp(24px,5vw,56px) max(4vw,16px)}
 h1{font:700 clamp(34px,8vw,52px)/1.05 Fredoka,sans-serif;margin:0 0 8px;text-wrap:balance}
 h1 span{color:var(--sun)}
 .sub{margin:0 0 28px;color:#c9d4ff;font-size:18px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}
 .game{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);transition:transform .15s}
 .game:hover,.game:focus-visible{transform:translateY(-4px)}
 .game:focus-visible{outline:4px solid var(--sun);outline-offset:4px}
@@ -44,6 +44,16 @@ h1 span{color:var(--sun)}
 .mc .play{background:#5daa3a;border:3px solid #22201c;box-shadow:0 4px 0 #22201c}
 .cube{width:110px;height:110px;border:4px solid #22201c;background:#8b5a34;background-image:linear-gradient(90deg,#0000 50%,#0000001a 50%),linear-gradient(#0000 50%,#ffffff14 50%);background-size:22px 22px,14px 14px;box-shadow:8px 8px 0 #0003;position:relative}
 .cube::before{content:"";position:absolute;inset:0 0 auto;height:30px;background:#5daa3a;background-image:linear-gradient(90deg,#4a8f2c 25%,#0000 25% 50%,#4a8f2c 50% 60%,#0000 60%);background-size:36px 100%;border-bottom:4px solid #4a8f2c}
+/* pokémon */
+.pk .art{background:#efe9ff;border-radius:22px 22px 0 0}
+.pk .info{border-radius:0 0 22px 22px}
+.pk h2{font-family:Fredoka}
+.pk .play{background:#5b4bb7;border-radius:12px}
+.gb{width:96px;height:140px;background:#5b4bb7;border-radius:12px 12px 30px 12px;padding:12px;box-shadow:0 8px 0 #463a96}
+.lcd{height:62px;background:#c5d98c;border-radius:4px;box-shadow:0 0 0 6px #2b2550}
+.pad{display:flex;align-items:center;justify-content:space-between;margin-top:20px}
+.pad i{width:22px;height:22px;background:#2b2550;clip-path:polygon(35% 0,65% 0,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0 65%,0 35%,35% 35%)}
+.pad b{width:16px;height:16px;border-radius:50%;background:#ffd23f}
 .foot{margin-top:28px;color:#c9d4ff;font-size:14px}
 @media(max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}.art{height:150px}}
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
@@ -61,6 +71,10 @@ h1 span{color:var(--sun)}
     <a class="game mc" href="minecraft.html">
       <div class="art"><div class="cube"></div></div>
       <div class="info"><h2>Minecraft</h2><p>Preguntas de mobs, bloques, crafteo y mundos.</p><span class="play">Jugar</span></div>
+    </a>
+    <a class="game pk" href="pokemon.html">
+      <div class="art"><div class="gb"><div class="lcd"></div><div class="pad"><i></i><b></b><b></b></div></div></div>
+      <div class="info"><h2>Pokémon</h2><p>Preguntas de Pokémon, tipos, anime y regiones.</p><span class="play">Jugar</span></div>
     </a>
   </div>
   <p class="foot">Cada juego recuerda sus ajustes y las preguntas que ya han salido en este móvil.</p>
