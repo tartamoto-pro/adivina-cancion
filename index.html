@@ -3,528 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>¿Qué palabra falta?</title>
+<title>Juegos en familia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Silkscreen:wght@700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
 <style>
-/* VOICE: juego familiar de coche, alegre, letras grandes, se lee de un vistazo
-   IDEA: una cinta de casete; la etiqueta es el título de la canción a completar
-   PICTURE: la casete con sus dos bobinas, que giran al acertar
-   COLOUR and TYPE: azul cobalto de fondo, etiqueta crema, coral y amarillo; Fredoka + Nunito
-   LAYOUT: una columna: marcador, casete, 4 botones grandes; ajustes y "mis frases" debajo */
-:root{color-scheme:light dark;--bg:light-dark(#2342b8,#101a45);--deep:light-dark(#1a3291,#0a1132);--label:light-dark(#fff7e6,#f3ead6);--ink:#1c1a2e;--on:#fff;--coral:#ff5a4e;--sun:#ffc93c;--ok:#22b573;--muted:light-dark(#c9d4ff,#9aa8de)}
+/* VOICE: menú alegre para niños, dos puertas grandes
+   IDEA: una estantería con dos cartuchos de juego
+   PICTURE: dos tarjetas enormes, cada una con el aspecto de su juego (casete y bloque)
+   COLOUR and TYPE: azul profundo de fondo; coral para canciones, verde hierba para Minecraft; Fredoka
+   LAYOUT: título y dos tarjetas que ocupan la pantalla; apiladas en el móvil */
+:root{color-scheme:light dark;--bg:light-dark(#2342b8,#101a45);--on:#fff;--sun:#ffc93c;--label:#fff7e6;--ink:#1c1a2e}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
-h1,h2,.big{font-family:Fredoka,Nunito,sans-serif;font-weight:700;line-height:1.05;text-wrap:balance;margin:0}
-.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-h1{font-size:clamp(28px,6vw,40px)}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;min-height:100vh;overflow-x:clip}
+.wrap{max-width:900px;margin:0 auto;padding:clamp(24px,5vw,56px) max(4vw,16px)}
+h1{font:700 clamp(34px,8vw,52px)/1.05 Fredoka,sans-serif;margin:0 0 8px;text-wrap:balance}
 h1 span{color:var(--sun)}
-button{font:inherit;cursor:pointer;border:0;border-radius:16px;min-height:48px;padding:10px 18px}
-button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-.ghost{background:var(--deep);color:var(--on);font-weight:800}
-.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.pl{flex:1 1 120px;background:var(--deep);border-radius:14px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800}
-.pl b{font-family:Fredoka;font-size:26px}
-.pl.now{border-color:var(--sun);background:#ffffff1a}
-.turn{font-weight:800;color:var(--sun);margin:0 0 8px;font-size:18px}
-/* casete */
-.tape{background:var(--coral);border-radius:22px;padding:14px 14px 0;box-shadow:0 10px 0 #0003;position:relative}
-.lab{background:var(--label);color:var(--ink);border-radius:12px;padding:16px 16px 12px;text-align:center;background-image:repeating-linear-gradient(transparent 0 34px,#2342b822 34px 36px)}
-.meta{font-size:14px;font-weight:800;color:#5a5670;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.big{font-size:clamp(30px,7.5vw,48px);margin:10px 0 6px;color:var(--ink)}
-.gap{display:inline-block;min-width:3.2em;border-bottom:5px solid var(--coral);color:var(--coral)}
-.hint{font-size:16px;color:#5a5670;min-height:24px;margin:0}
-.reels{display:flex;justify-content:center;align-items:center;gap:18%;padding:12px 0 16px}
-.reels svg{width:64px;height:64px}
-.spin .r{animation:sp .9s linear 2}
-@keyframes sp{to{transform:rotate(360deg)}}
-.r{transform-origin:32px 32px}
-@media(prefers-reduced-motion:reduce){.spin .r{animation:none}}
-.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
-.opt{background:var(--label);color:var(--ink);font-family:Fredoka;font-weight:600;font-size:clamp(19px,4.6vw,24px);min-height:72px;box-shadow:0 5px 0 #0004;transition:transform .1s}
-.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #0004}
-.opt.good{background:var(--ok);color:#fff}
-.opt.bad{background:var(--coral);color:#fff}
-.opt:disabled{cursor:default}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-.row>*{flex:1 1 160px}
-.go{background:var(--sun);color:var(--ink);font-family:Fredoka;font-weight:700;font-size:21px;box-shadow:0 5px 0 #0004}
-.res{font-family:Fredoka;font-size:22px;text-align:center;min-height:30px;margin:14px 0 0;color:var(--sun)}
-/* paneles */
-.panel{background:var(--deep);border-radius:20px;padding:18px;margin-top:22px}
-.panel h2{font-size:24px;margin-bottom:10px}
-.panel p{margin:4px 0 12px;color:var(--muted)}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.chip{background:#ffffff14;color:var(--on);font-weight:800;border:2px solid #ffffff33;min-height:44px;padding:6px 14px;border-radius:999px}
-.chip[aria-pressed=true]{background:var(--sun);color:var(--ink);border-color:var(--sun)}
-label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
-input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:12px;border:2px solid #ffffff33;background:#ffffff12;color:var(--on);padding:8px 12px}
-.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px}
-.mine{list-style:none;padding:0;margin:12px 0 0}
-.mine li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #ffffff22}
-.mine button{min-height:40px;padding:6px 12px;background:#ffffff18;color:var(--on)}
-.note{font-size:14px;color:var(--muted);margin-top:14px}
-.end{text-align:center}
-.end .big{color:var(--sun);font-size:clamp(34px,8vw,52px)}
-.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
-.rank li{background:#ffffff14;border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
-.rank li:first-child{background:var(--sun);color:var(--ink)}
-[hidden]{display:none!important}
-@media(max-width:600px){.names,.grid2{grid-template-columns:minmax(0,1fr)}}
+.sub{margin:0 0 28px;color:#c9d4ff;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.game{display:flex;flex-direction:column;text-decoration:none;color:var(--ink);transition:transform .15s}
+.game:hover,.game:focus-visible{transform:translateY(-4px)}
+.game:focus-visible{outline:4px solid var(--sun);outline-offset:4px}
+.art{height:190px;display:grid;place-items:center;position:relative}
+.info{background:var(--label);padding:16px 18px 20px}
+.info h2{margin:0 0 4px;font-size:26px;line-height:1.1}
+.info p{margin:0 0 14px;color:#4d4a5c}
+.play{display:inline-block;font-family:Fredoka;font-weight:700;font-size:20px;padding:10px 22px;color:#fff}
+/* canciones */
+.songs .art{background:#ff5a4e;border-radius:22px 22px 0 0}
+.songs .info{border-radius:0 0 22px 22px}
+.songs h2{font-family:Fredoka}
+.songs .play{background:#2342b8;border-radius:14px}
+.tape{width:78%;height:120px;background:var(--label);border-radius:12px;display:flex;justify-content:center;align-items:center;gap:22%;box-shadow:0 8px 0 #0003}
+.reel{width:54px;height:54px;border-radius:50%;background:#1c1a2e;display:grid;place-items:center}
+.reel i{width:28px;height:28px;border-radius:50%;background:var(--label);border:6px dashed #1c1a2e}
+/* minecraft */
+.mc .art{background:#6fb6ee;border:4px solid #22201c;border-bottom:0}
+.mc .info{border:4px solid #22201c;border-top:0}
+.mc h2{font-family:Silkscreen,monospace}
+.mc .play{background:#5daa3a;border:3px solid #22201c;box-shadow:0 4px 0 #22201c}
+.cube{width:110px;height:110px;border:4px solid #22201c;background:#8b5a34;background-image:linear-gradient(90deg,#0000 50%,#0000001a 50%),linear-gradient(#0000 50%,#ffffff14 50%);background-size:22px 22px,14px 14px;box-shadow:8px 8px 0 #0003;position:relative}
+.cube::before{content:"";position:absolute;inset:0 0 auto;height:30px;background:#5daa3a;background-image:linear-gradient(90deg,#4a8f2c 25%,#0000 25% 50%,#4a8f2c 50% 60%,#0000 60%);background-size:36px 100%;border-bottom:4px solid #4a8f2c}
+.foot{margin-top:28px;color:#c9d4ff;font-size:14px}
+@media(max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}.art{height:150px}}
+@media(prefers-reduced-motion:reduce){.game{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>¿Qué palabra <span>falta?</span></h1>
-    <button class="ghost" id="newGame">Nueva partida</button>
-  </header>
-
-  <section id="game">
-    <div class="score" id="score"></div>
-    <p class="turn" id="turn"></p>
-    <div class="tape" id="tape">
-      <div class="lab">
-        <div class="meta"><span id="num"></span><span id="era"></span></div>
-        <p class="big" id="phrase"></p>
-        <p class="hint" id="hint"></p>
-      </div>
-      <div class="reels" aria-hidden="true">
-        <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#1c1a2e"/><g class="r"><circle cx="32" cy="32" r="18" fill="#fff7e6"/><g fill="#1c1a2e"><rect x="29" y="15" width="6" height="12" rx="2"/><rect x="29" y="37" width="6" height="12" rx="2"/><rect x="15" y="29" width="12" height="6" rx="2"/><rect x="37" y="29" width="12" height="6" rx="2"/></g></g></svg>
-        <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#1c1a2e"/><g class="r"><circle cx="32" cy="32" r="18" fill="#fff7e6"/><g fill="#1c1a2e"><rect x="29" y="15" width="6" height="12" rx="2"/><rect x="29" y="37" width="6" height="12" rx="2"/><rect x="15" y="29" width="12" height="6" rx="2"/><rect x="37" y="29" width="12" height="6" rx="2"/></g></g></svg>
-      </div>
-    </div>
-    <div class="opts" id="opts"></div>
-    <p class="res" id="res" aria-live="polite"></p>
-    <div class="row">
-      <button class="ghost" id="hintBtn">Pista: ¿de quién es?</button>
-      <button class="go" id="next" hidden>Siguiente canción</button>
-    </div>
-  </section>
-
-  <section id="end" class="end" hidden>
-    <div class="tape"><div class="lab"><p class="big" id="winner" style="color:var(--ink)"></p><p class="hint">Fin de la partida</p></div><div class="reels"></div></div>
-    <ol class="rank" id="rank"></ol>
-    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
-  </section>
-
-  <section class="panel" id="setup">
-    <h2>Ajustes de la partida</h2>
-    <label>Jugadores (deja en blanco los que no jueguen)</label>
-    <div class="names">
-      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
-      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
-      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
-      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
-    </div>
-    <label>Épocas</label>
-    <div class="chips" id="eras"></div>
-    <label>Canciones</label>
-    <div class="chips" id="langs"></div>
-    <label>Canciones para cada jugador</label>
-    <div class="chips" id="lens"></div>
-    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
-    <p class="note" id="count"></p>
-  </section>
-
-  <section class="panel">
-    <h2>Mis frases</h2>
-    <p>Añade tus propios trozos de canciones, como los que os decís en el coche. Se guardan en este móvil y entran en la partida.</p>
-    <form id="addForm">
-      <div class="grid2">
-        <div><label for="fPre">Frase (hasta la palabra que falta)</label><input id="fPre" required placeholder="Lo que dices en voz alta"></div>
-        <div><label for="fAns">Palabra correcta</label><input id="fAns" required></div>
-        <div><label for="fW1">Opción falsa 1</label><input id="fW1" required></div>
-        <div><label for="fW2">Opción falsa 2</label><input id="fW2" required></div>
-        <div><label for="fW3">Opción falsa 3</label><input id="fW3" required></div>
-        <div><label for="fArt">Artista (opcional)</label><input id="fArt"></div>
-      </div>
-      <button class="go" style="width:100%;margin-top:14px">Añadir frase</button>
-    </form>
-    <ul class="mine" id="mine"></ul>
-  </section>
-  <p class="note">Las frases que vienen de serie son títulos de canciones, que suelen ser lo más coreado. Después de acertar, ¡cantad el estribillo juntos!</p>
+  <h1>¿A qué <span>jugamos?</span></h1>
+  <p class="sub">Elige un juego. Se juega por turnos, con 4 respuestas para elegir.</p>
+  <div class="grid">
+    <a class="game songs" href="canciones.html">
+      <div class="art"><div class="tape"><span class="reel"><i></i></span><span class="reel"><i></i></span></div></div>
+      <div class="info"><h2>¿Qué palabra falta?</h2><p>Completa el título de canciones de los 80 hasta hoy.</p><span class="play">Jugar</span></div>
+    </a>
+    <a class="game mc" href="minecraft.html">
+      <div class="art"><div class="cube"></div></div>
+      <div class="info"><h2>Minecraft</h2><p>Preguntas de mobs, bloques, crafteo y mundos.</p><span class="play">Jugar</span></div>
+    </a>
+  </div>
+  <p class="foot">Cada juego recuerda sus ajustes y las preguntas que ya han salido en este móvil.</p>
 </div>
-
-<script>
-{
-const ES=[
-["Cuéntame un ","cuento",["secreto","chiste","sueño"],"Celtas Cortos",1991],
-["Pájaros de ","barro",["papel","cristal","fuego"],"Manolo García",1998],
-["Hijo de la ","Luna",["noche","mar","tierra"],"Mecano",1986],
-["Me cuesta tanto ","olvidarte",["quererte","encontrarte","decírtelo"],"Mecano",1986],
-["Un año ","más",["nuevo","menos","entero"],"Mecano",1988],
-["Cruz de ","navajas",["madera","espinas","hierro"],"Mecano",1986],
-["Devuélveme a mi ","chica",["casa","perro","bici"],"Hombres G",1985],
-["Marta tiene un ","marcapasos",["secreto","novio","patinete"],"Hombres G",1985],
-["En algún ","lugar",["momento","rincón","sitio"],"Duncan Dhu",1987],
-["Puedes contar ","conmigo",["las estrellas","hasta diez","mi historia"],"La Oreja de Van Gogh",2003],
-["Como ","Camarón",["Lola Flores","el viento","un gitano"],"Estopa",1999],
-["La raja de tu ","falda",["camisa","puerta","mochila"],"Estopa",1999],
-["Corazón ","partío",["contento","de piedra","loco"],"Alejandro Sanz",1997],
-["Amiga ","mía",["fiel","del alma","querida"],"Alejandro Sanz",1997],
-["Entre dos ","tierras",["aguas","mundos","amores"],"Héroes del Silencio",1990],
-["Escuela de ","calor",["baile","rock","verano"],"Radio Futura",1984],
-["La chica de ","ayer",["azul","mañana","la radio"],"Nacha Pop",1980],
-["A quién le ","importa",["gusta","duele","toca"],"Alaska y Dinarama",1986],
-["Cadillac ","solitario",["negro","rosa","oxidado"],"Loquillo y los Trogloditas",1983],
-["Soldadito ","marinero",["de plomo","valiente","perdido"],"Fito & Fitipaldis",2003],
-["Caminando por la ","vida",["calle","playa","ciudad"],"Melendi",2005],
-["Tu jardín con ","enanitos",["flores","piscina","columpios"],"Melendi",2012],
-["La madre de ","José",["Juan","Marta","Pepe"],"El Canto del Loco",2005],
-["Solamente ","tú",["yo","una vez","contigo"],"Pablo Alborán",2010],
-["Con ","altura",["estilo","calma","alegría"],"Rosalía y J Balvin",2019],
-["Ave ","María",["Fénix","Lucía","Rosa"],"David Bisbal",2002],
-["Pies descalzos, sueños ","blancos",["rotos","dorados","perdidos"],"Shakira",1995],
-["Estoy ","aquí",["sola","lista","contigo"],"Shakira",1995],
-["Livin' la vida ","loca",["bella","buena","rica"],"Ricky Martin",1999],
-["Experiencia ","religiosa",["única","mágica","divertida"],"Enrique Iglesias",1995],
-["La camisa ","negra",["blanca","rota","nueva"],"Juanes",2004],
-["Sin ti no soy ","nada",["feliz","nadie","yo"],"Amaral",2002],
-["El universo sobre ","mí",["ti","nosotros","la mesa"],"Amaral",2005],
-["Sin ","documentos",["dinero","rumbo","paraguas"],"Los Rodríguez",1993],
-["Lo echamos a ","suertes",["perder","la calle","volar"],"Ella Baila Sola",1996],
-["Quiero tener tu ","presencia",["sonrisa","mirada","número"],"Seguridad Social",1993],
-["Tú me dejaste de ","querer",["llamar","hablar","mirar"],"C. Tangana",2020],
-["Tití me ","preguntó",["llamó","miró","contó"],"Bad Bunny",2022],
-["La fuerza del ","destino",["amor","viento","tiempo"],"Mecano",1988],
-["Me colé en una ","fiesta",["boda","piscina","clase"],"Mecano",1982],
-["Barco a ","Venus",["Marte","Mallorca","la Luna"],"Mecano",1984],
-["Voy a pasármelo ","bien",["genial","bomba","en grande"],"Hombres G",1989],
-["Cien ","gaviotas",["palomas","estrellas","caballos"],"Duncan Dhu",1986],
-["Lobo hombre en ","París",["Madrid","la luna","el bosque"],"La Unión",1984],
-["Enamorado de la moda ","juvenil",["italiana","de París","del barrio"],"Radio Futura",1980],
-["Lucha de ","gigantes",["titanes","almohadas","gallos"],"Nacha Pop",1987],
-["Pero a tu ","lado",["casa","espalda","manera"],"Los Secretos",1995],
-["Como la cabeza al ","sombrero",["cuello","cuerpo","pelo"],"El Último de la Fila",1988],
-["A fuego ","lento",["vivo","rápido","alto"],"Rosana",1996],
-["No estamos ","lokos",["solos","cansados","tristes"],"Ketama",1995],
-["Cómo hemos ","cambiado",["crecido","bailado","soñado"],"Presuntos Implicados",1991],
-["Hay poco ","rock & roll",["tiempo","dinero","sitio"],"Platero y Tú",2000],
-["La ","flaca",["gorda","rubia","morena"],"Jarabe de Palo",1996],
-["Vino ","tinto",["blanco","rosado","dulce"],"Estopa",2001],
-["Tu ","calorro",["coche","perro","novio"],"Estopa",1999],
-["Dulce ","locura",["sonrisa","mentira","canción"],"La Oreja de Van Gogh",2006],
-["La niña que llora en tus ","fiestas",["brazos","sueños","fotos"],"La Oreja de Van Gogh",2003],
-["Cuéntame al ","oído",["revés","final","momento"],"La Oreja de Van Gogh",1998],
-["Y si fuera ","ella",["yo","verdad","mañana"],"Alejandro Sanz",1997],
-["Mi soledad y ","yo",["tú","la luna","mi guitarra"],"Alejandro Sanz",1995],
-["Cuando nadie me ","ve",["oye","llama","quiere"],"Alejandro Sanz",2000],
-["Lloraré las ","penas",["noches","horas","lágrimas"],"David Bisbal",2002],
-["Una foto en blanco y ","negro",["rojo","gris","azul"],"El Canto del Loco",2004],
-["Con la luna ","llena",["nueva","de plata","encima"],"Melendi",2003],
-["Lágrimas ","desordenadas",["perdidas","de cocodrilo","saladas"],"Melendi",2012],
-["Por la boca vive el ","pez",["gato","perro","pájaro"],"Fito & Fitipaldis",2006],
-["La casa por el ","tejado",["suelo","jardín","balcón"],"Fito & Fitipaldis",2005],
-["Días de ","verano",["fiesta","colegio","lluvia"],"Amaral",2005],
-["Te he echado de ","menos",["más","casa","golpe"],"Pablo Alborán",2014],
-["Me gustas ","tú",["mucho","así","todavía"],"Manu Chao",2001],
-["20 de ","abril",["mayo","agosto","enero"],"Celtas Cortos",1991],
-["La senda del ","tiempo",["viento","río","bosque"],"Celtas Cortos",1990],
-["19 días y 500 ","noches",["años","besos","canciones"],"Joaquín Sabina",1999],
-["Vida de ","rico",["perro","gato","rey"],"Camilo",2020],
-["Tacones ","rojos",["altos","negros","nuevos"],"Sebastián Yatra",2021],
-["Cómo te ","atreves",["llamas","quiero","olvido"],"Morat",2015],
-["La ","bicicleta",["moto","guitarra","playa"],"Carlos Vives y Shakira",2016],
-["A Dios le ","pido",["canto","rezo","debo"],"Juanes",2002],
-["Ojos ","así",["negros","verdes","bonitos"],"Shakira",1998],
-["Ciega, ","sordomuda",["perdida","enamorada","dormida"],"Shakira",1998],
-["Rayando el ","sol",["cielo","mar","día"],"Maná",1990],
-["Labios ","compartidos",["rojos","de miel","prohibidos"],"Maná",2006],
-["La copa de la ","vida",["amistad","alegría","victoria"],"Ricky Martin",1998],
-["La ","gozadera",["bachata","fiesta","pachanga"],"Gente de Zona y Marc Anthony",2015],
-["Échame la ","culpa",["mano","bronca","red"],"Luis Fonsi y Demi Lovato",2017],
-["Ni tú ni ","nadie",["yo","nada","ella"],"Alaska y Dinarama",1985],
-["El ritmo del ","garaje",["corazón","verano","barrio"],"Loquillo y los Trogloditas",1983],
-["Maldito ","duende",["fantasma","pirata","demonio"],"Héroes del Silencio",1988],
-["Llamando a la ","Tierra",["Luna","puerta","policía"],"M-Clan",2001],
-["Sabor de ","amor",["verano","fresa","mar"],"Danza Invisible",1988],
-["Devuélveme la ","vida",["sonrisa","pelota","ilusión"],"Antonio Orozco",2004],
-["Son de ","amores",["Cuba","verano","fiesta"],"Andy & Lucas",2003],
-["No es serio este ","cementerio",["colegio","partido","castillo"],"Mecano",1982],
-["Una rosa es una ","rosa",["flor","espina","margarita"],"Mecano",1991],
-["El 7 de ","septiembre",["julio","la suerte","enero"],"Mecano",1991],
-["Mujer contra ","mujer",["el viento","reloj","todos"],"Mecano",1988],
-["Hoy no me puedo ","levantar",["dormir","callar","quedar"],"Mecano",1981],
-["Visite nuestro ","bar",["museo","pueblo","jardín"],"Hombres G",1985],
-["El ataque de las chicas ","cocodrilo",["zombi","pirata","vampiro"],"Hombres G",1986],
-["Esos ojos ","negros",["azules","verdes","tristes"],"Duncan Dhu",1986],
-["Una calle de ","París",["Roma","Madrid","Londres"],"Duncan Dhu",1986],
-["Veneno en la ","piel",["sangre","boca","mirada"],"Radio Futura",1990],
-["La negra ","flor",["noche","luna","sombra"],"Radio Futura",1984],
-["Ojos de ","gata",["tigre","lince","cristal"],"Los Secretos",1986],
-["Lápiz y ","papel",["goma","tinta","pincel"],"El Último de la Fila",1993],
-["Aviones ","plateados",["de papel","dorados","perdidos"],"El Último de la Fila",1995],
-["Camino ","Soria",["Toledo","Cuenca","Burgos"],"Gabinete Caligari",1987],
-["Al calor del amor en un ","bar",["tren","coche","barco"],"Gabinete Caligari",1986],
-["Vivir sin ","aire",["ti","miedo","luz"],"Maná",1992],
-["En el muelle de San ","Blas",["Juan","Pedro","Sebastián"],"Maná",1997],
-["Oye mi ","amor",["niña","canción","voz"],"Maná",1992],
-["Héroe de ","leyenda",["película","cartón","guerra"],"Héroes del Silencio",1987],
-["La sirena ","varada",["dormida","perdida","dorada"],"Héroes del Silencio",1993],
-["Tranquilo, ","majete",["chaval","colega","amigo"],"Celtas Cortos",1993],
-["Cómo pudiste hacerme esto a ","mí",["ti","él","nosotros"],"Alaska y Dinarama",1984],
-["Retorciendo ","palabras",["espaguetis","sueños","cables"],"Fangoria",2006],
-["Amante ","bandido",["perdido","dormido","valiente"],"Miguel Bosé",1984],
-["Si tú no ","vuelves",["me quieres","llamas","estás"],"Miguel Bosé",1993],
-["Cuando zarpa el ","amor",["barco","tren","verano"],"Camela",1995],
-["Cuando tú ","vas",["llegas","bailas","sonríes"],"Chenoa",2002],
-["Dos hombres y un ","destino",["perro","secreto","caballo"],"Bustamante y Bisbal",2003],
-["Esclavo de sus ","besos",["ojos","manos","palabras"],"David Bisbal",2009],
-["Mi ","princesa",["reina","estrella","guitarra"],"David Bisbal",2009],
-["Ya nada volverá a ser como ","antes",["siempre","ayer","nunca"],"El Canto del Loco",2005],
-["Pienso en aquella ","tarde",["noche","chica","canción"],"Pereza",2005],
-["Lady ","Madrid",["Barcelona","Gaga","Sevilla"],"Pereza",2007],
-["Partiendo la ","pana",["pista","tarta","calle"],"Estopa",2005],
-["El del medio de los ","Chichos",["Beatles","Rolling","Chunguitos"],"Estopa",2001],
-["Un violinista en tu ","tejado",["ventana","cocina","balcón"],"Melendi",2012],
-["Barbie de ","extrarradio",["plástico","Malibú","ciudad"],"Melendi",2005],
-["Sin noticias de ","Holanda",["Francia","Italia","nadie"],"Melendi",2003],
-["Whisky ","barato",["con hielo","caro","escocés"],"Fito & Fitipaldis",2009],
-["Antes de que cuente ","diez",["tres","cien","hasta mil"],"Fito & Fitipaldis",2009],
-["Me equivocaría otra ","vez",["noche","semana","vida"],"Fito & Fitipaldis",2006],
-["El último ","vals",["baile","tango","beso"],"La Oreja de Van Gogh",2008],
-["Cometas por el ","cielo",["mar","parque","aire"],"La Oreja de Van Gogh",2011],
-["Toda la noche en la ","calle",["cama","playa","fiesta"],"Amaral",2008],
-["Moriría por ","vos",["ti","ella","nada"],"Amaral",2002],
-["No es lo ","mismo",["normal","justo","fácil"],"Alejandro Sanz",2003],
-["La ","tortura",["locura","cintura","aventura"],"Shakira y Alejandro Sanz",2005],
-["Viviendo ","deprisa",["despacio","contigo","sin miedo"],"Alejandro Sanz",1991],
-["Por ","fin",["favor","ti","siempre"],"Pablo Alborán",2014],
-["Nunca el tiempo es ","perdido",["eterno","oro","bastante"],"Manolo García",1998],
-["La ","Fama",["Luna","Noche","Suerte"],"Rosalía y The Weeknd",2021],
-["Vas a ","quedarte",["volver","bailar","llorar"],"Aitana",2018],
-["Lo ","malo",["bueno","raro","mío"],"Aitana y Ana Guerra",2018],
-["Ya no quiero ","ná",["más","a nadie","volver"],"Lola Índigo",2018],
-["Nunca te ","olvidaré",["dejaré","perdonaré","esperaré"],"Enrique Iglesias",1999],
-["Si tú te ","vas",["quedas","ríes","callas"],"Enrique Iglesias",1995],
-["Es por ","ti",["mí","amor","eso"],"Juanes",2002],
-["Las de la ","intuición",["oficina","canción","esquina"],"Shakira",2006],
-["La gota ","fría",["de agua","caliente","que cae"],"Carlos Vives",1993],
-["Vivir mi ","vida",["sueño","fiesta","historia"],"Marc Anthony",2013],
-["Lo que pasó, ","pasó",["quedó","dolió","volvió"],"Daddy Yankee",2004],
-["La ","bilirrubina",["bicicleta","melancolía","gasolina"],"Juan Luis Guerra",1990],
-["Burbujas de ","amor",["jabón","agua","colores"],"Juan Luis Guerra",1990],
-["Ojalá que llueva ","café",["chocolate","dinero","mañana"],"Juan Luis Guerra",1989],
-["Mi ","tierra",["casa","gente","vida"],"Gloria Estefan",1993],
-["Y nos dieron las ","diez",["doce","once","tantas"],"Joaquín Sabina",1992],
-["Tenía tanto que ","darte",["decirte","contarte","enseñarte"],"Nena Daconte",2008],
-["El sol no ","regresa",["calienta","se esconde","sale"],"La Quinta Estación",2004],
-["Bailar ","pegados",["contigo","descalzos","despacio"],"Sergio Dalma",1991],
-["Amores de ","barra",["verano","película","bar"],"Ella Baila Sola",1996],
-["Historias de ","amor",["miedo","piratas","verano"],"OBK",1991],
-["Pan y ","mantequilla",["chocolate","tomate","aceite"],"Efecto Pasillo",2012],
-["Qué bonito es ","querer",["vivir","soñar","bailar"],"Manuel Carrasco",2018],
-["Besos en ","guerra",["la boca","la playa","secreto"],"Morat y Juanes",2018],
-["Pareja del ","año",["mes","barrio","siglo"],"Sebastián Yatra y Myke Towers",2021],
-["Me porto ","bonito",["bien","fatal","regular"],"Bad Bunny",2022],
-["So ","payaso",["valiente","tonto","pirata"],"Extremoduro",1996],
-["En blanco y ","negro",["gris","color","rojo"],"Barricada",1990],
-["Maneras de ","vivir",["andar","hablar","soñar"],"Leño",1981],
-["Los rockeros van al ","infierno",["cielo","colegio","concierto"],"Barón Rojo",1982],
-["¿Cuándo se come ","aquí?",["hoy?","algo?","en casa?"],"Siniestro Total",1982],
-["Fiesta ","pagana",["mayor","sorpresa","pirata"],"Mägo de Oz",2000],
-["La danza del ","fuego",["agua","viento","dragón"],"Mägo de Oz",2000],
-["Molinos de ","viento",["agua","papel","harina"],"Mägo de Oz",1998],
-["Segundo ","premio",["plato","intento","puesto"],"Los Planetas",1998],
-["Promesas que no valen ","nada",["oro","la pena","dinero"],"Los Piratas",1997],
-["Mar ","adentro",["afuera","abierto","en calma"],"Héroes del Silencio",1988],
-["Querida ","Milagros",["Lucía","Carmen","Dolores"],"El Último de la Fila",1986],
-["Acabo de ","llegar",["salir","despertar","empezar"],"Fito & Fitipaldis",2003],
-["Estrella ","polar",["fugaz","de mar","del norte"],"Pereza",2009],
-["Tiempos nuevos, tiempos ","salvajes",["mejores","difíciles","modernos"],"Ilegales",1984],
-["Dulce ","condena",["locura","mentira","venganza"],"Los Rodríguez",1995],
-["Los días ","raros",["grises","felices","de lluvia"],"Vetusta Morla",2011],
-["Quédate en ","Madrid",["casa","Sevilla","la cama"],"Mecano",1988],
-["Naturaleza ","muerta",["viva","salvaje","dormida"],"Mecano",1991],
-["Deseos de cosas ","imposibles",["bonitas","pequeñas","raras"],"La Oreja de Van Gogh",2003],
-["Muñeca de ","trapo",["porcelana","papel","cristal"],"La Oreja de Van Gogh",2006],
-["Marta, Sebas, Guille y los ","demás",["otros","míos","tuyos"],"Amaral",2000],
-["Puede ","ser",["que sí","volver","esperar"],"El Canto del Loco",2004],
-["Quisiera ","ser",["volar","saber","tenerte"],"Alejandro Sanz",2000],
-["Los dos cogidos de la ","mano",["cintura","luna","calle"],"Alejandro Sanz",1991],
-["Calle la ","pantomima",["mentira","alegría","esperanza"],"Melendi",2003],
-["Cacho a ","cacho",["poco","trozo","paso"],"Estopa",1999],
-["Ya no me ","acuerdo",["quieres","llamas","importa"],"Estopa",2001],
-["Lunas ","rotas",["llenas","nuevas","de plata"],"Rosana",1996],
-["Moscas en la ","casa",["sopa","cocina","ventana"],"Shakira",1998],
-["Volverte a ","ver",["llamar","besar","encontrar"],"Juanes",2004],
-["Clavado en un ","bar",["árbol","tren","rincón"],"Maná",1997],
-["Mariposa ","traicionera",["azul","bonita","nocturna"],"Maná",2002],
-["Pienso en tu ","mirá",["boca","voz","casa"],"Rosalía",2018],
-["Dónde está el ","amor",["mar","tesoro","verano"],"Pablo Alborán y Jesse & Joy",2013],
-["Lo saben mis ","zapatos",["amigos","ojos","vecinos"],"Pablo López",2015],
-["Cuando los sapos bailen ","flamenco",["salsa","tango","en la luna"],"Ella Baila Sola",1996],
-["Jardín de ","rosas",["flores","invierno","colores"],"Duncan Dhu",1987],
-["La lista de la ","compra",["clase","fiesta","semana"],"La Cabra Mecánica",2000],
-["Física o ","química",["matemáticas","magia","historia"],"Despistaos",2008]];
-const EN=[
-["Livin' on a ","Prayer",["Dream","Highway","Rainbow"],"Bon Jovi",1986],
-["Another One Bites the ","Dust",["Bullet","Floor","Apple"],"Queen",1980],
-["Smooth ","Criminal",["Operator","Dancer","Talker"],"Michael Jackson",1987],
-["Like a ","Prayer",["Star","Rolling Stone","Bird"],"Madonna",1989],
-["Girls Just Want to Have ","Fun",["Love","Money","Friends"],"Cyndi Lauper",1983],
-["Take On ","Me",["You","Fire","Life"],"a-ha",1985],
-["The Final ","Countdown",["Battle","Goodbye","Answer"],"Europe",1986],
-["Eye of the ","Tiger",["Storm","Eagle","Night"],"Survivor",1982],
-["I Wanna Dance with ","Somebody",["Nobody","My Baby","You"],"Whitney Houston",1987],
-["It Must Have Been ","Love",["You","Magic","Yesterday"],"Roxette",1990],
-["Smells Like Teen ","Spirit",["Party","Movie","Dream"],"Nirvana",1991],
-["Don't Look Back in ","Anger",["Time","Love","Tears"],"Oasis",1996],
-["I Want It That ","Way",["Day","Time","Night"],"Backstreet Boys",1999],
-["...Baby One More ","Time",["Day","Kiss","Chance"],"Britney Spears",1998],
-["Can't Get You Out of My ","Head",["Heart","Life","Mind"],"Kylie Minogue",2001],
-["Viva la ","Vida",["Fiesta","Música","Noche"],"Coldplay",2008],
-["Fix ","You",["Me","It","Us"],"Coldplay",2005],
-["I Gotta ","Feeling",["Secret","Problem","Dream"],"The Black Eyed Peas",2009],
-["Bad ","Romance",["Blood","Day","Boy"],"Lady Gaga",2009],
-["Rolling in the ","Deep",["Dark","Rain","Sea"],"Adele",2010],
-["Wake Me ","Up",["Now","Tonight","Gently"],"Avicii",2013],
-["Shake It ","Off",["Up","Out","Down"],"Taylor Swift",2014],
-["Uptown ","Funk",["Girl","Party","Town"],"Mark Ronson y Bruno Mars",2014],
-["Shape of ","You",["Water","Love","Me"],"Ed Sheeran",2017],
-["Blinding ","Lights",["Stars","Eyes","Nights"],"The Weeknd",2019],
-["Don't Start ","Now",["Again","Crying","Running"],"Dua Lipa",2019],
-["Bad ","Guy",["Girl","Day","Blood"],"Billie Eilish",2019],
-["As It ","Was",["Is","Goes","Seems"],"Harry Styles",2022],
-["Hips Don't ","Lie",["Stop","Move","Cry"],"Shakira",2005],
-["Don't Stop ","Believin'",["Dancing","Running","Dreaming"],"Journey",1981],
-["Sweet Child o' ","Mine",["Gold","Love","Time"],"Guns N' Roses",1987],
-["Man in the ","Mirror",["Moon","Middle","Window"],"Michael Jackson",1988],
-["Every Breath You ","Take",["Make","Break","Need"],"The Police",1983],
-["Under ","Pressure",["Water","Control","Fire"],"Queen y David Bowie",1981],
-["Total Eclipse of the ","Heart",["Sun","Moon","Night"],"Bonnie Tyler",1983],
-["Wake Me Up Before You ","Go-Go",["Leave","Sleep","Stop"],"Wham!",1984],
-["Walking on ","Sunshine",["Water","Air","the Moon"],"Katrina and the Waves",1985],
-["Don't Worry, Be ","Happy",["Quiet","Careful","Brave"],"Bobby McFerrin",1988],
-["Barbie ","Girl",["Doll","World","Party"],"Aqua",1997],
-["Who Let the Dogs ","Out",["In","Go","Run"],"Baha Men",2000],
-["Crazy in ","Love",["Paris","Time","Bed"],"Beyoncé",2003],
-["Seven Nation ","Army",["Party","Highway","Dream"],"The White Stripes",2003],
-["Poker ","Face",["Night","Game","Star"],"Lady Gaga",2008],
-["Call Me ","Maybe",["Baby","Later","Now"],"Carly Rae Jepsen",2011],
-["Counting ","Stars",["Sheep","Money","Days"],"OneRepublic",2013],
-["Thinking Out ","Loud",["Now","Slow","There"],"Ed Sheeran",2014],
-["Can't Stop the ","Feeling!",["Music!","Party!","Beat!"],"Justin Timberlake",2016],
-["Dance ","Monkey",["Party","Floor","Queen"],"Tones and I",2019],
-["Watermelon ","Sugar",["Juice","Summer","Candy"],"Harry Styles",2019]];
-const mk=(a,l)=>a.map(([p,ans,w,ar,y])=>({p,ans,w,ar,y,l}));
-const BASE=[...mk(ES,'es'),...mk(EN,'en')];
-const ERAS=[["80","Años 80",1980,1989],["90","Años 90",1990,1999],["00","2000",2000,2009],["10","2010 hasta hoy",2010,2100]];
-const LANGS=[["es","En español"],["en","En inglés"],["mine","Mis frases"]];
-const LENS=[3,5,8,10];
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
-const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
-const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-
-let mine=load('qpf-mine',[]);
-let cfg=load('qpf-cfg',{eras:["80","90","00","10"],langs:["es","mine"],len:5,v:2,names:["Jugador 1","Jugador 2","",""]});
-if(!LENS.includes(cfg.len))cfg.len=5;
-if(cfg.v!==2){cfg.langs=cfg.langs.filter(l=>l!=='en');if(!cfg.langs.includes('es'))cfg.langs.push('es');cfg.v=2}
-let st=null;
-
-function chips(el,list,isOn,toggle){
-  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
-  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
-}
-function pool(){
-  const out=[];
-  if(cfg.langs.includes('mine'))mine.forEach(m=>out.push({...m,l:'mine'}));
-  BASE.forEach(s=>{if(!cfg.langs.includes(s.l))return;const e=ERAS.find(([k,,a,b])=>s.y>=a&&s.y<=b);if(e&&cfg.eras.includes(e[0]))out.push(s)});
-  return out;
-}
-function renderSetup(){
-  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
-  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
-  const all=()=>ERAS.every(e=>cfg.eras.includes(e[0]));
-  chips($('eras'),[["all","Todas las épocas"],...ERAS],k=>k==='all'?all():cfg.eras.includes(k),k=>{if(k==='all')cfg.eras=all()?[]:ERAS.map(e=>e[0]);else tg(cfg.eras,k)});
-  chips($('langs'),LANGS,k=>cfg.langs.includes(k),k=>tg(cfg.langs,k));
-  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
-  const n=pool().length;
-  $('count').textContent=n?`Hay ${n} canciones disponibles con estos ajustes.`:'Elige al menos una época y un tipo de canciones.';
-  save('qpf-cfg',cfg);
-}
-function renderMine(){
-  $('mine').innerHTML=mine.length?mine.map((m,i)=>`<li><span>${esc(m.p)} <b>${esc(m.ans)}</b>${m.ar?' · '+esc(m.ar):''}</span><button type="button" data-i="${i}">Quitar</button></li>`).join(''):'<li><span>Todavía no has añadido ninguna.</span></li>';
-}
-function start(){
-  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());
-  save('qpf-cfg',cfg);
-  let players=cfg.names.filter(Boolean);
-  if(!players.length)players=['Jugador 1'];
-  const p=pool();
-  if(st)clearTimeout(st.timer);
-  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
-  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
-  const need=per*players.length,key=s=>s.p+s.ans;
-  let seen=load('qpf-seen',[]);
-  const fresh=shuffle(p.filter(s=>!seen.includes(key(s))));
-  if(fresh.length<need){seen=[];save('qpf-seen',seen)}
-  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
-  st={players,pts:players.map(()=>0),q,i:0,turn:0,per,key};
-  $('end').hidden=true;$('game').hidden=false;
-  show();window.scrollTo({top:0,behavior:'smooth'});
-}
-function show(){
-  const s=st.q[st.i];
-  $('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('');
-  $('turn').textContent=st.players.length>1?`Le toca a ${st.players[st.turn]}`:'';
-  const n=st.players.length;
-  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Canción ${st.i+1} de ${st.q.length}`;
-  $('era').textContent=s.l==='mine'?'Mis frases':(s.l==='es'?'En español':'En inglés');
-  $('phrase').innerHTML=`${esc(s.p)}<span class="gap">&nbsp;</span>`;
-  $('hint').textContent='';
-  $('hintBtn').hidden=!s.ar&&!s.y;$('hintBtn').disabled=false;
-  $('res').textContent='';$('next').hidden=true;
-  $('opts').innerHTML=shuffle([s.ans,...s.w]).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
-}
-function answer(b){
-  const s=st.q[st.i],ok=b.dataset.o===s.ans;
-  const seen=load('qpf-seen',[]);if(!seen.includes(st.key(s))){seen.push(st.key(s));save('qpf-seen',seen)}
-  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
-  if(!ok)b.classList.add('bad');
-  if(ok)st.pts[st.turn]++;
-  $('phrase').innerHTML=`${esc(s.p)}<span class="gap">${esc(s.ans)}</span>`;
-  $('hint').textContent=[s.ar,s.y].filter(Boolean).join(' · ');
-  $('res').textContent=ok?'¡Correcto! +1 punto':`¡Casi! Era «${s.ans}»`;
-  const t=$('tape');t.classList.remove('spin');void t.offsetWidth;if(ok)t.classList.add('spin');
-  $('hintBtn').hidden=true;
-  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
-  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente canción');
-  $('next').focus();
-  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
-  $('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('');
-}
-function next(){
-  clearTimeout(st.timer);if($('next').hidden)return;
-  st.i++;st.turn=(st.turn+1)%st.players.length;
-  if(st.i<st.q.length){show();return}
-  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
-  const tie=r.length>1&&r[0][1]===r[1][1];
-  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
-  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
-  $('game').hidden=true;$('end').hidden=false;
-}
-$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
-$('next').onclick=next;
-$('hintBtn').onclick=()=>{const s=st.q[st.i];$('hint').textContent='Pista: '+[s.ar,s.y].filter(Boolean).join(' · ');$('hintBtn').disabled=true};
-$('start').onclick=start;$('again').onclick=start;
-$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
-[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('qpf-cfg',cfg)}));
-$('addForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  let p=$('fPre').value.trim();if(!/\s$/.test(p))p+=' ';
-  mine.push({p,ans:$('fAns').value.trim(),w:[$('fW1').value.trim(),$('fW2').value.trim(),$('fW3').value.trim()],ar:$('fArt').value.trim(),y:''});
-  save('qpf-mine',mine);e.target.reset();renderMine();renderSetup();
-});
-$('mine').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;mine.splice(+b.dataset.i,1);save('qpf-mine',mine);renderMine();renderSetup()};
-renderSetup();renderMine();start();
-}
-</script>
 </body>
 </html>

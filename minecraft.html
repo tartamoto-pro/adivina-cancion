@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preguntas de Minecraft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: concurso familiar, alegre, letras grandes y fáciles de leer para niños
+   IDEA: un bloque de hierba: la pregunta va sobre la tierra, con el césped encima
+   PICTURE: la tarjeta-bloque con borde de píxeles y cuatro botones-bloque
+   COLOUR and TYPE: cielo azul, verde hierba, marrón tierra, piedra gris; Silkscreen para títulos, Nunito para leer
+   LAYOUT: una columna: marcador, bloque-pregunta, 4 botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:light-dark(#6fb6ee,#16243a);--deep:light-dark(#3f7fc0,#0e1828);--grass:#5daa3a;--grass2:#4a8f2c;--dirt:#8b5a34;--dirt2:#74482a;--stone:#d9d6cf;--ink:#22201c;--on:#fff;--ok:#3fbf4a;--bad:#e2463c;--sun:#ffd23f;--muted:light-dark(#e6f2ff,#a8b8d0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2,.px{font-family:Silkscreen,monospace;font-weight:700;line-height:1.05;margin:0;letter-spacing:0}
+.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(26px,6vw,38px);text-shadow:3px 3px 0 #0003}
+button{font:inherit;cursor:pointer;border:0;border-radius:4px;min-height:48px;padding:10px 18px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.ghost{background:var(--deep);color:var(--on);font-weight:800}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pl{flex:1 1 120px;background:var(--deep);border-radius:4px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800}
+.pl b{font-family:Silkscreen;font-size:24px}
+.pl.now{border-color:var(--sun);background:#ffffff22}
+.turn{font-weight:800;color:var(--sun);margin:0 0 8px;font-size:18px;text-shadow:1px 1px 0 #0004}
+.block{border:4px solid #22201c;box-shadow:6px 6px 0 #0004;background:var(--dirt);background-image:linear-gradient(90deg,#0000 50%,#0000001a 50%),linear-gradient(#0000 50%,#ffffff12 50%);background-size:24px 24px,16px 16px}
+.block .top{height:26px;background:var(--grass);background-image:linear-gradient(90deg,var(--grass2) 25%,#0000 25% 50%,var(--grass2) 50% 60%,#0000 60%);background-size:40px 100%;border-bottom:4px solid var(--grass2)}
+.card{background:var(--stone);color:var(--ink);margin:16px;padding:16px;border:3px solid #22201c}
+.meta{font-size:14px;font-weight:800;color:#5c574d;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.q{font-family:Nunito;font-weight:800;font-size:clamp(22px,5.4vw,30px);line-height:1.2;margin:10px 0 4px;text-wrap:balance}
+.fact{font-size:16px;color:#4d483f;min-height:24px;margin:0}
+.bounce{animation:bn .5s ease 1}
+@keyframes bn{40%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.bounce{animation:none}}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.opt{background:var(--stone);color:var(--ink);font-weight:800;font-size:clamp(17px,4.2vw,21px);line-height:1.2;min-height:76px;border:3px solid #22201c;box-shadow:0 5px 0 #22201c;transition:transform .1s}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #22201c}
+.opt.good{background:var(--ok);color:#fff}
+.opt.bad{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 160px}
+.go{background:var(--grass);color:#fff;font-family:Silkscreen;font-weight:700;font-size:19px;border:3px solid #22201c;box-shadow:0 5px 0 #22201c}
+.res{font-family:Silkscreen;font-size:20px;text-align:center;min-height:30px;margin:14px 0 0;color:var(--sun);text-shadow:2px 2px 0 #0005}
+.panel{background:var(--deep);border-radius:4px;padding:18px;margin-top:22px}
+.panel h2{font-size:22px;margin-bottom:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:#ffffff18;color:var(--on);font-weight:800;border:2px solid #ffffff44;min-height:44px;padding:6px 14px}
+.chip[aria-pressed=true]{background:var(--sun);color:var(--ink);border-color:var(--sun)}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:4px;border:2px solid #ffffff44;background:#ffffff14;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.end{text-align:center}
+.end .q{font-family:Silkscreen;color:var(--ink)}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:#ffffff18;border-radius:4px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--sun);color:var(--ink)}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:4px}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}.card{margin:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Preguntas de Minecraft</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="newGame">Nueva partida</button></span>
+  </header>
+
+  <section id="game">
+    <div class="score" id="score"></div>
+    <p class="turn" id="turn"></p>
+    <div class="block" id="blk"><div class="top"></div>
+      <div class="card">
+        <div class="meta"><span id="num"></span><span id="cat"></span></div>
+        <p class="q" id="q"></p>
+        <p class="fact" id="fact"></p>
+      </div>
+    </div>
+    <div class="opts" id="opts"></div>
+    <p class="res" id="res" aria-live="polite"></p>
+    <div class="row"><button class="go" id="next" hidden>Siguiente</button></div>
+  </section>
+
+  <section id="end" class="end" hidden>
+    <div class="block"><div class="top"></div><div class="card"><p class="q" id="winner"></p><p class="fact">Fin de la partida</p></div></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Temas</label>
+    <div class="chips" id="cats"></div>
+    <label>Dificultad</label>
+    <div class="chips" id="lvls"></div>
+    <label>Preguntas para cada jugador</label>
+    <div class="chips" id="lens"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note" id="count"></p>
+  </section>
+  <p class="note">Juego de preguntas hecho por fans para jugar en familia; no es un producto oficial de Minecraft. Las respuestas siguen el juego actual (Java y Bedrock).</p>
+</div>
+
+<script>
+{
+// [pregunta, respuesta, [falsas], tema, nivel 1=fácil 2=difícil]
+const Q=[
+["¿Qué mob explota cuando se acerca a ti?","Creeper",["Zombi","Esqueleto","Araña"],"mobs",1],
+["¿Qué te da una oveja al esquilarla?","Lana",["Cuero","Plumas","Hilo"],"mobs",1],
+["¿Qué mob se enfada si le miras a los ojos?","Enderman",["Creeper","Bruja","Aldeano"],"mobs",1],
+["¿Qué arma usan los esqueletos?","Arco",["Espada","Tridente","Hacha"],"mobs",1],
+["¿Qué suelta un esqueleto al morir?","Huesos y flechas",["Carne podrida","Hilo","Pólvora"],"mobs",1],
+["¿Qué suelta normalmente un zombi?","Carne podrida",["Huesos","Pólvora","Cuero"],"mobs",1],
+["¿Con qué se domestica un lobo?","Huesos",["Pescado","Trigo","Zanahorias"],"mobs",1],
+["¿Qué le das a un gato callejero para domesticarlo?","Pescado crudo",["Huesos","Leche","Semillas"],"mobs",1],
+["¿Qué animal te da leche si usas un cubo con él?","Vaca",["Cerdo","Oveja","Gallina"],"mobs",1],
+["¿Qué le pasa a un creeper si le cae un rayo cerca?","Se vuelve un creeper cargado",["Se muere","Se convierte en cerdo","Desaparece"],"mobs",2],
+["¿En qué se convierte un cerdo si le cae un rayo?","Piglin zombificado",["Creeper","Hoglin","Aldeano"],"mobs",2],
+["¿Cómo se llama el jefe final que vive en el End?","Dragón del End",["Wither","Warden","Guardián anciano"],"mobs",1],
+["¿Qué jefe se invoca con calaveras de esqueleto wither y arena de almas?","El Wither",["Dragón del End","Warden","Evocador"],"mobs",2],
+["¿Qué mob ciego vive en la Oscuridad Profunda?","Warden",["Enderman","Vex","Phantom"],"mobs",2],
+["¿Qué mob volador aparece si llevas varias noches sin dormir?","Phantom",["Murciélago","Ghast","Vex"],"mobs",2],
+["¿Qué mob flota en el Nether y lanza bolas de fuego?","Ghast",["Phantom","Strider","Murciélago"],"mobs",1],
+["¿Qué suelta un blaze al morir?","Vara de blaze",["Pólvora","Polvo de redstone","Huesos"],"mobs",2],
+["¿Qué mob del Nether te cambia cosas si le das lingotes de oro?","Piglin",["Hoglin","Ghast","Blaze"],"mobs",2],
+["¿Qué mob puede caminar sobre la lava?","Strider",["Ghast","Piglin","Hoglin"],"mobs",2],
+["¿Qué comida hace que un cerdo te siga?","Zanahoria",["Trigo","Manzana","Pan"],"mobs",1],
+["¿Qué necesitas para montar y dirigir un cerdo?","Silla de montar y caña con zanahoria",["Silla de montar y una cuerda","Solo una silla de montar","Una correa"],"mobs",2],
+["¿Qué mob se divide en otros más pequeños al morir?","Slime",["Zombi","Araña","Creeper"],"mobs",1],
+["¿Qué usan los aldeanos como moneda para comerciar?","Esmeraldas",["Diamantes","Oro","Monedas"],"mobs",1],
+["¿Qué le pasa a un aldeano si le cae un rayo?","Se convierte en bruja",["Se vuelve zombi","Se cura","Explota"],"mobs",2],
+["¿De qué animal huyen los creepers?","Del gato",["Del lobo","De la gallina","Del caballo"],"mobs",2],
+["¿Qué mob protege los monumentos oceánicos?","Guardián",["Ahogado","Calamar","Delfín"],"mobs",2],
+["¿Cómo se llama el zombi que vive bajo el agua?","Ahogado",["Aldeano zombi","Piglin zombificado","Zoglin"],"mobs",2],
+["¿Qué te da un calamar?","Saco de tinta",["Pescado","Algas","Perla"],"mobs",1],
+["¿Qué mob suelta perlas de ender?","Enderman",["Creeper","Slime","Bruja"],"mobs",1],
+["¿Qué mob suelta el tótem de la inmortalidad?","Evocador",["Vindicador","Saqueador","Bruja"],"mobs",2],
+["¿Qué cubo usas para llevarte un ajolote?","Cubo de agua",["Cubo de lava","Cubo de leche","Cubo vacío"],"mobs",2],
+["¿Qué mob azul recoge objetos y te los trae?","Allay",["Loro","Zorro","Vex"],"mobs",2],
+["¿Qué animal hace miel?","Abeja",["Oso polar","Zorro","Panda"],"mobs",1],
+["¿Qué come el panda?","Bambú",["Bayas","Hojas","Caña de azúcar"],"mobs",1],
+["¿Qué mob grande protege las aldeas?","Gólem de hierro",["Gólem de nieve","Warden","Vindicador"],"mobs",1],
+["¿Cómo se fabrica un gólem de nieve?","Dos bloques de nieve y una calabaza",["Tres bloques de hielo","Nieve y un melón","Lana blanca y una calabaza"],"mobs",2],
+["¿Cómo se fabrica un gólem de hierro?","Cuatro bloques de hierro y una calabaza",["Cuatro lingotes y una calabaza","Bloques de piedra y una calabaza","Un yunque y una calabaza"],"mobs",2],
+["¿Con qué se cura a un aldeano zombi?","Poción de debilidad y manzana de oro",["Un cubo de leche","Poción de curación","Pan y agua"],"mobs",2],
+["¿Qué mob te lanza pociones?","Bruja",["Evocador","Aldeano","Esqueleto"],"mobs",1],
+["¿Qué pico necesitas como mínimo para picar diamante?","Pico de hierro",["Pico de piedra","Pico de madera","Pico de oro"],"bloques",1],
+["¿Qué pico necesitas para picar obsidiana?","Pico de diamante",["Pico de hierro","Pico de piedra","Pico de oro"],"bloques",1],
+["¿Cómo se forma la obsidiana?","Agua sobre una fuente de lava",["Lava sobre arena","Agua sobre piedra","Hielo derretido"],"bloques",1],
+["¿Cuál es la mejor armadura del juego?","Netherita",["Diamante","Hierro","Oro"],"bloques",1],
+["¿Dónde se encuentran los escombros ancestrales?","En el Nether",["En el End","Bajo el mar","En las aldeas"],"bloques",2],
+["¿Qué bloque explota si lo enciendes?","Dinamita (TNT)",["Piedra luminosa","Calabaza","Bloque de redstone"],"bloques",1],
+["¿Qué sale al fundir arena en un horno?","Cristal",["Arenisca","Piedra","Ladrillo"],"bloques",1],
+["¿Qué sale al fundir piedra labrada en un horno?","Piedra",["Grava","Ladrillo","Andesita"],"bloques",2],
+["¿Qué sale al cocer una bola de arcilla en el horno?","Ladrillo",["Cristal","Terracota","Piedra"],"bloques",2],
+["¿Qué cae a veces al picar grava?","Pedernal",["Carbón","Hierro","Hueso"],"bloques",1],
+["¿Qué mineral sirve para hacer circuitos?","Redstone",["Lapislázuli","Cuarzo","Esmeralda"],"bloques",1],
+["¿Qué mineral necesitas en la mesa de encantamientos?","Lapislázuli",["Redstone","Esmeralda","Amatista"],"bloques",2],
+["¿Qué bloque da luz y se encuentra en el techo del Nether?","Piedra luminosa",["Linterna","Antorcha","Calabaza"],"bloques",1],
+["¿Qué bloque te hace rebotar al saltar encima?","Bloque de slime",["Bloque de miel","Lana","Esponja"],"bloques",1],
+["¿Qué bloque absorbe el agua?","Esponja",["Lana","Arena","Bloque de miel"],"bloques",1],
+["¿Sobre qué bloque resbalas mucho?","Hielo",["Arena","Bloque de miel","Lana"],"bloques",1],
+["¿Qué planta crece junto al agua y sirve para hacer azúcar?","Caña de azúcar",["Bambú","Cactus","Trigo"],"bloques",1],
+["¿Qué planta te hace daño si la tocas?","Cactus",["Caña de azúcar","Bambú","Helecho"],"bloques",1],
+["¿Dónde hay más diamantes?","Muy abajo, cerca del fondo del mundo",["Al nivel del mar","En lo alto de las montañas","Justo debajo de la hierba"],"bloques",2],
+["¿Qué bloque no se puede romper en modo supervivencia?","Piedra base (bedrock)",["Obsidiana","Bloque de netherita","Bloque de diamante"],"bloques",1],
+["¿Qué necesitas para fabricar un catalejo?","Cobre y amatista",["Hierro y cristal","Oro y cuarzo","Cristal y palos"],"bloques",2],
+["¿De qué color se vuelve el cobre con el tiempo?","Verde",["Negro","Rojo","Blanco"],"bloques",1],
+["¿Cómo evitas que el cobre se oxide?","Encerándolo con un panal",["Pintándolo","Mojándolo","Echándole lava"],"bloques",2],
+["¿Cuántos tablones salen de un tronco?","4",["2","1","8"],"crafteo",1],
+["¿Qué necesitas para hacer antorchas?","Palo y carbón",["Palo y hierro","Palo y pólvora","Madera y cuerda"],"crafteo",1],
+["¿Cuántos bloques de obsidiana hacen falta como mínimo para un portal al Nether?","10",["14","8","12"],"crafteo",2],
+["¿Con qué enciendes un portal al Nether?","Mechero (pedernal y acero)",["Una antorcha","Redstone","Una perla de ender"],"crafteo",1],
+["¿Qué necesitas para hacer una cama?","Lana y tablones",["Cuero y madera","Plumas y madera","Hilo y palos"],"crafteo",1],
+["¿Qué pasa si intentas dormir en el Nether?","La cama explota",["Pasa la noche","Te curas","No pasa nada"],"crafteo",2],
+["¿Para qué sirve dormir en una cama?","Saltar la noche y guardar dónde reapareces",["Quitar el hambre","Ganar experiencia","Curar el veneno"],"crafteo",1],
+["¿Qué necesitas para hacer un libro?","Papel y cuero",["Papel y lana","Madera y cuero","Papel y una pluma"],"crafteo",2],
+["¿De qué se hace el papel?","Caña de azúcar",["Madera","Bambú","Trigo"],"crafteo",1],
+["¿Qué necesitas para hacer pan?","Tres de trigo",["Trigo y huevo","Trigo y leche","Patatas"],"crafteo",1],
+["¿Qué lleva la tarta?","Leche, azúcar, huevo y trigo",["Solo trigo y leche","Azúcar y huevos","Manzanas y trigo"],"crafteo",2],
+["¿Qué te da una manzana de oro además de comida?","Absorción y regeneración",["Velocidad","Poder volar","Invisibilidad"],"crafteo",2],
+["¿Qué objeto te salva de morir una vez?","Tótem de la inmortalidad",["Manzana de oro","Escudo","Élitros"],"crafteo",1],
+["¿Qué objeto te deja planear por el aire?","Élitros",["Tridente","Perla de ender","Plumas"],"crafteo",1],
+["¿Dónde se encuentran los élitros?","En los barcos de las ciudades del End",["En el Nether","En los templos del desierto","En las aldeas"],"crafteo",2],
+["¿Qué pasa al lanzar una perla de ender?","Te teletransportas donde cae",["Explota","Aparece un enderman","Te vuelves invisible"],"crafteo",1],
+["¿Qué arma vuelve a tu mano si tiene el encantamiento Lealtad?","Tridente",["Espada","Hacha","Arco"],"crafteo",2],
+["¿Qué herramienta usas para esquilar ovejas?","Tijeras",["Hacha","Espada","Azada"],"crafteo",1],
+["¿Qué herramienta prepara la tierra para sembrar?","Azada",["Pala","Pico","Hacha"],"crafteo",1],
+["¿Qué objeto apunta al punto de aparición del mundo?","Brújula",["Mapa","Reloj","Catalejo"],"crafteo",1],
+["¿Qué bloque usas para hacer pociones?","Soporte para pociones",["Caldero","Mesa de trabajo","Horno"],"crafteo",2],
+["¿Qué ingrediente es la base de casi todas las pociones?","Verruga del Nether",["Azúcar","Redstone","Pólvora"],"crafteo",2],
+["¿Qué añades a una poción para poder lanzarla?","Pólvora",["Redstone","Polvo de piedra luminosa","Azúcar"],"crafteo",2],
+["¿Qué quita todos los efectos de pociones?","Un cubo de leche",["Un cubo de agua","Pan","Una manzana"],"crafteo",1],
+["¿Qué comida te envenena siempre?","Pez globo",["Salmón","Bacalao","Zanahoria"],"crafteo",2],
+["¿Dónde guardas tus objetos?","En un cofre",["En un horno","En la mesa de trabajo","En un yunque"],"crafteo",1],
+["¿Para qué sirve el yunque?","Reparar y cambiar el nombre a objetos",["Cocinar","Encantar","Hacer pociones"],"crafteo",1],
+["¿Cuántas dimensiones tiene Minecraft?","Tres",["Dos","Cuatro","Cinco"],"mundos",1],
+["¿Cómo se llega al End?","Por un portal de una fortaleza, con ojos de ender",["Con un portal de obsidiana","Cavando en la piedra base","Durmiendo en el Nether"],"mundos",1],
+["¿Cuántos ojos de ender necesita el portal del End?","12",["8","10","16"],"mundos",2],
+["¿Cómo se fabrica un ojo de ender?","Perla de ender y polvo de blaze",["Perla de ender y redstone","Perla de ender y diamante","Perla de ender y piedra luminosa"],"mundos",2],
+["¿Qué pasa si echas agua en el Nether?","Se evapora",["Se congela","Se vuelve lava","Funciona normal"],"mundos",1],
+["Si andas 1 bloque en el Nether, ¿cuántos bloques avanzas en el mundo normal?","8",["2","4","16"],"mundos",2],
+["¿En qué bioma hay setas gigantes y vacas rojas con setas?","Campo de champiñones",["Pantano","Jungla","Taiga"],"mundos",2],
+["¿En qué bioma hay templos con una trampa de dinamita?","Desierto",["Jungla","Tundra nevada","Océano"],"mundos",2],
+["¿Cuánto dura un día completo en Minecraft?","20 minutos",["10 minutos","1 hora","24 minutos"],"mundos",2],
+["¿En qué modo puedes volar y tienes bloques infinitos?","Creativo",["Supervivencia","Aventura","Extremo"],"mundos",1],
+["¿Qué pasa en modo extremo si mueres?","No puedes volver a jugar en ese mundo",["Reapareces en la cama","Pierdes solo los objetos","Vuelves con media vida"],"mundos",2],
+["¿Quién creó Minecraft?","Notch (Markus Persson)",["Steve","Herobrine","Alex"],"mundos",2],
+["¿Cómo se llaman los personajes clásicos del jugador?","Steve y Alex",["Steve y Notch","Alex y Herobrine","Juan y Ana"],"mundos",1],
+["¿Qué estructura bajo tierra tiene vías de vagoneta abandonadas?","Mina abandonada",["Fortaleza","Ciudad antigua","Mazmorra"],"mundos",1],
+["¿Qué bloque de sculk llama al Warden si haces ruido?","Chillador de sculk",["Sensor de sculk","Catalizador de sculk","Vena de sculk"],"mundos",2],
+["¿En qué dimensión están las fortalezas con blazes?","En el Nether",["En el End","En el mundo normal","Bajo el océano"],"mundos",1],
+["¿Qué estructura del mundo normal tiene el portal al End?","Fortaleza",["Mansión del bosque","Pirámide del desierto","Aldea"],"mundos",1]];
+const CATS=[["mobs","Mobs y animales"],["bloques","Bloques y minerales"],["crafteo","Crafteo y objetos"],["mundos","Mundos y curiosidades"]];
+const LVLS=[["1","Fácil"],["2","Difícil"]];
+const LENS=[3,5,8,10];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
+let cfg=load('mc-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:5,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=5;
+let st=null;
+function chips(el,list,isOn,toggle){
+  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
+}
+const pool=()=>ALL.filter(s=>cfg.cats.includes(s.c)&&cfg.lvls.includes(s.l));
+function renderSetup(){
+  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
+  const all=()=>CATS.every(c=>cfg.cats.includes(c[0]));
+  chips($('cats'),[["all","Todos los temas"],...CATS],k=>k==='all'?all():cfg.cats.includes(k),k=>{if(k==='all')cfg.cats=all()?[]:CATS.map(c=>c[0]);else tg(cfg.cats,k)});
+  chips($('lvls'),LVLS,k=>cfg.lvls.includes(k),k=>tg(cfg.lvls,k));
+  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
+  const n=pool().length;
+  $('count').textContent=n?`Hay ${n} preguntas disponibles con estos ajustes.`:'Elige al menos un tema y una dificultad.';
+  save('mc-cfg',cfg);
+}
+const board=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function start(){
+  if(st)clearTimeout(st.timer);
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('mc-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  const p=pool();
+  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
+  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
+  const need=per*players.length;
+  let seen=load('mc-seen',[]);
+  const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
+  if(fresh.length<need){seen=[];save('mc-seen',seen)}
+  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,per};
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+function show(){
+  const s=st.q[st.i],n=st.players.length;
+  board();
+  $('turn').textContent=n>1?`Le toca a ${st.players[st.turn]}`:'';
+  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Pregunta ${st.i+1} de ${st.q.length}`;
+  $('cat').textContent=CATS.find(c=>c[0]===s.c)[1]+(s.l==='2'?' · difícil':'');
+  $('q').textContent=s.q;$('fact').textContent='';$('res').textContent='';$('next').hidden=true;
+  $('opts').innerHTML=shuffle([s.ans,...s.w]).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+function answer(b){
+  const s=st.q[st.i],ok=b.dataset.o===s.ans;
+  const seen=load('mc-seen',[]);if(!seen.includes(s.q)){seen.push(s.q);save('mc-seen',seen)}
+  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
+  if(!ok)b.classList.add('bad');else st.pts[st.turn]++;
+  $('fact').textContent='Respuesta: '+s.ans;
+  $('res').textContent=ok?'¡Correcto! +1 punto':'¡Casi!';
+  const k=$('blk');k.classList.remove('bounce');void k.offsetWidth;if(ok)k.classList.add('bounce');
+  board();
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente');
+  $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
+}
+function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
+  st.i++;st.turn=(st.turn+1)%st.players.length;
+  if(st.i<st.q.length){show();return}
+  $('next').hidden=true;
+  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
+  const tie=r.length>1&&r[0][1]===r[1][1];
+  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
+  $('game').hidden=true;$('end').hidden=false;
+}
+$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
+$('next').onclick=next;$('start').onclick=start;$('again').onclick=start;
+$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('mc-cfg',cfg)}));
+renderSetup();start();
+}
+</script>
+</body>
+</html>
