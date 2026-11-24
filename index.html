@@ -12,8 +12,10 @@
    PICTURE: dos tarjetas enormes, cada una con el aspecto de su juego (casete y bloque)
    COLOUR and TYPE: azul profundo de fondo; coral para canciones, verde hierba para Minecraft; Fredoka
    LAYOUT: título y dos tarjetas que ocupan la pantalla; apiladas en el móvil */
-:root{color-scheme:light dark;--bg:light-dark(#2342b8,#101a45);--on:#fff;--sun:#ffc93c;--label:#fff7e6;--ink:#1c1a2e}
+:root{color-scheme:light dark;--bg:#2342b8;--on:#fff;--sun:#ffc93c;--label:#fff7e6;--ink:#1c1a2e}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101a45}}
+:root[data-theme=dark]{--bg:#101a45}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;min-height:100vh;overflow-x:clip}
 .wrap{max-width:1000px;margin:0 auto;padding:clamp(24px,5vw,56px) max(4vw,16px)}

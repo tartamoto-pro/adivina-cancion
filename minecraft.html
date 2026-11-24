@@ -12,8 +12,10 @@
    PICTURE: la tarjeta-bloque con borde de píxeles y cuatro botones-bloque
    COLOUR and TYPE: cielo azul, verde hierba, marrón tierra, piedra gris; Silkscreen para títulos, Nunito para leer
    LAYOUT: una columna: marcador, bloque-pregunta, 4 botones; ajustes debajo */
-:root{color-scheme:light dark;--bg:light-dark(#6fb6ee,#16243a);--deep:light-dark(#3f7fc0,#0e1828);--grass:#5daa3a;--grass2:#4a8f2c;--dirt:#8b5a34;--dirt2:#74482a;--stone:#d9d6cf;--ink:#22201c;--on:#fff;--ok:#3fbf4a;--bad:#e2463c;--sun:#ffd23f;--muted:light-dark(#e6f2ff,#a8b8d0)}
+:root{color-scheme:light dark;--bg:#6fb6ee;--deep:#3f7fc0;--grass:#5daa3a;--grass2:#4a8f2c;--dirt:#8b5a34;--dirt2:#74482a;--stone:#d9d6cf;--ink:#22201c;--on:#fff;--ok:#3fbf4a;--bad:#e2463c;--sun:#ffd23f;--muted:#e6f2ff}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#16243a;--deep:#0e1828;--muted:#a8b8d0}}
+:root[data-theme=dark]{--bg:#16243a;--deep:#0e1828;--muted:#a8b8d0}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
 h1,h2,.px{font-family:Silkscreen,monospace;font-weight:700;line-height:1.05;margin:0;letter-spacing:0}

@@ -12,8 +12,10 @@
    PICTURE: la casete con sus dos bobinas, que giran al acertar
    COLOUR and TYPE: azul cobalto de fondo, etiqueta crema, coral y amarillo; Fredoka + Nunito
    LAYOUT: una columna: marcador, casete, 4 botones grandes; ajustes y "mis frases" debajo */
-:root{color-scheme:light dark;--bg:light-dark(#2342b8,#101a45);--deep:light-dark(#1a3291,#0a1132);--label:light-dark(#fff7e6,#f3ead6);--ink:#1c1a2e;--on:#fff;--coral:#ff5a4e;--sun:#ffc93c;--ok:#22b573;--muted:light-dark(#c9d4ff,#9aa8de)}
+:root{color-scheme:light dark;--bg:#2342b8;--deep:#1a3291;--label:#fff7e6;--ink:#1c1a2e;--on:#fff;--coral:#ff5a4e;--sun:#ffc93c;--ok:#22b573;--muted:#c9d4ff}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101a45;--deep:#0a1132;--label:#f3ead6;--muted:#9aa8de}}
+:root[data-theme=dark]{--bg:#101a45;--deep:#0a1132;--label:#f3ead6;--muted:#9aa8de}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
 h1,h2,.big{font-family:Fredoka,Nunito,sans-serif;font-weight:700;line-height:1.05;text-wrap:balance;margin:0}

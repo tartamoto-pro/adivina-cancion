@@ -12,8 +12,10 @@
    PICTURE: la carcasa con la pantalla LCD y su piloto, botones grandes debajo
    COLOUR and TYPE: carcasa morada, pantalla verde LCD, botones amarillos; Press Start 2P en títulos, Nunito para leer
    LAYOUT: una columna: marcador, consola, 4 botones; ajustes debajo */
-:root{color-scheme:light dark;--bg:light-dark(#efe9ff,#17122e);--shell:#5b4bb7;--shell2:#463a96;--lcd:#c5d98c;--lcd2:#a9c06a;--lcdink:#26331a;--btn:#ffd23f;--ink:#1d1838;--on:light-dark(#1d1838,#f3efff);--ok:#2fb35a;--bad:#e2463c;--panel:light-dark(#ffffff,#241c45);--muted:light-dark(#5d5780,#b8b0dd)}
+:root{color-scheme:light dark;--bg:#efe9ff;--shell:#5b4bb7;--shell2:#463a96;--lcd:#c5d98c;--lcd2:#a9c06a;--lcdink:#26331a;--btn:#ffd23f;--ink:#1d1838;--on:#1d1838;--ok:#2fb35a;--bad:#e2463c;--panel:#ffffff;--muted:#5d5780}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17122e;--on:#f3efff;--panel:#241c45;--muted:#b8b0dd}}
+:root[data-theme=dark]{--bg:#17122e;--on:#f3efff;--panel:#241c45;--muted:#b8b0dd}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
 h1,h2{font-family:"Press Start 2P",monospace;font-weight:400;line-height:1.3;margin:0}
