@@ -73,6 +73,10 @@ input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:12px;
 .rank li{background:#ffffff14;border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
 .rank li:first-child{background:var(--sun);color:var(--ink)}
 a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:16px}
+.duo{margin-top:22px;padding-top:18px;border-top:2px dashed currentColor}
+.duo h2{margin-bottom:6px}
+.join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
+.codebar{font-weight:800;text-align:center;padding:8px 12px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
 [hidden]{display:none!important}
 @media(max-width:600px){.names,.grid2{grid-template-columns:minmax(0,1fr)}}
 </style>
@@ -85,6 +89,7 @@ a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48
   </header>
 
   <section id="game">
+    <p class="codebar" id="codebar" hidden></p>
     <div class="score" id="score"></div>
     <p class="turn" id="turn"></p>
     <div class="tape" id="tape">
@@ -129,6 +134,14 @@ a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48
     <div class="chips" id="lens"></div>
     <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
     <p class="note" id="count"></p>
+    <div class="duo">
+      <h2>Jugar en dos móviles</h2>
+      <p class="note">Crea una partida y dile el código al otro. Los dos tendréis las mismas preguntas en el mismo orden. Cada uno juega en su móvil con el nombre del Jugador 1 y al final comparáis los puntos.</p>
+      <button class="go" id="mkCode" style="width:100%">Crear partida con código</button>
+      <label for="joinCode">¿Te han dado un código?</label>
+      <div class="join"><input id="joinCode" inputmode="numeric" autocomplete="off" placeholder="Ej.: 123 456"><button class="go" id="joinBtn">Unirse</button></div>
+      <p class="note" id="codeMsg" aria-live="polite"></p>
+    </div>
   </section>
 
   <section class="panel">
@@ -494,6 +507,7 @@ function start(){
   if(!players.length)players=['Jugador 1'];
   const p=pool();
   if(st)clearTimeout(st.timer);
+  $('codebar').hidden=true;
   if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
   const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
   const need=per*players.length,key=s=>s.p+s.ans;
@@ -516,7 +530,7 @@ function show(){
   $('hint').textContent='';
   $('hintBtn').hidden=!s.ar&&!s.y;$('hintBtn').disabled=false;
   $('res').textContent='';$('next').hidden=true;
-  $('opts').innerHTML=shuffle([s.ans,...s.w]).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+  $('opts').innerHTML=(st.code?sshuffle([s.ans,...s.w],rng(st.code*97+st.i)):shuffle([s.ans,...s.w])).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
 }
 function answer(b){
   const s=st.q[st.i],ok=b.dataset.o===s.ans;
@@ -544,7 +558,29 @@ function next(){
   $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
   $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
   $('game').hidden=true;$('end').hidden=false;
+  if(st.code){$('winner').textContent=`${st.pts[0]} de ${st.q.length} aciertos`;$('rank').innerHTML=`<li><span>Código ${fmt(st.code)}</span><span>¡Comparad los puntos!</span></li>`}
 }
+const enc=()=>{let b=0;ERAS.forEach((e,i)=>{if(cfg.eras.includes(e[0]))b|=1<<i});if(cfg.langs.includes('es'))b|=16;if(cfg.langs.includes('en'))b|=32;return b|LENS.indexOf(cfg.len)<<6};
+const dec=b=>{cfg.eras=ERAS.filter((e,i)=>b>>i&1).map(e=>e[0]);cfg.langs=[...(b&16?['es']:[]),...(b&32?['en']:[])];cfg.len=LENS[b>>6&3]};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const sshuffle=(a,r)=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>String(n).replace(/(\d{3})(\d{3})/,'$1 $2');
+function playCode(N){
+  const seed=Math.floor(N/256),b=N%256;
+  if(!(seed>=400&&seed<=999)){$('codeMsg').textContent='Ese código no es válido. Tiene que tener 6 números.';return}
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());
+  dec(b);renderSetup();
+  const p=pool();
+  if(!p.length){$('codeMsg').textContent='Ese código no es válido.';return}
+  if(st)clearTimeout(st.timer);
+  const q=sshuffle(p,rng(N)).slice(0,Math.min(cfg.len,p.length));
+  st={players:[cfg.names[0]||'Jugador 1'],pts:[0],q,i:0,turn:0,per:q.length,code:N,key:s=>s.p?s.p+s.ans:s.q};
+  $('codebar').hidden=false;$('codebar').textContent='Partida con código '+fmt(N);$('codeMsg').textContent='';
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+$('mkCode').onclick=()=>{if(!pool().length){renderSetup();return}playCode((400+Math.floor(Math.random()*600))*256+enc())};
+$('joinBtn').onclick=()=>playCode(parseInt($('joinCode').value.replace(/\D/g,''),10)||0);
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
 $('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
 $('next').onclick=next;
 $('hintBtn').onclick=()=>{const s=st.q[st.i];$('hint').textContent='Pista: '+[s.ar,s.y].filter(Boolean).join(' · ');$('hintBtn').disabled=true};
