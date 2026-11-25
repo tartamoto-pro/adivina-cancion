@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preguntas de Harry Potter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: concurso de magia familiar, cálido, letras grandes
+   IDEA: un libro antiguo de hechizos: la pregunta aparece escrita en un pergamino
+   PICTURE: tapa de cuero con un pergamino dentro y una vela encendida
+   COLOUR and TYPE: cuero burdeos, pergamino crema, tinta marrón, botones dorados; Cinzel + Nunito
+   LAYOUT: una columna: marcador, libro, 4 botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:#f4ecdc;--shell:#7a2e2e;--shell2:#5a1f1f;--lcd:#f3e4bf;--lcd2:#d9c48f;--lcdink:#3b2414;--btn:#e9c46a;--ink:#2a1a10;--on:#2a1a10;--ok:#2fb35a;--bad:#e2463c;--panel:#ffffff;--muted:#6e5a48}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b1410;--on:#f4ead8;--panel:#2a1f19;--muted:#c9b8a0}}
+:root[data-theme=dark]{--bg:#1b1410;--on:#f4ead8;--panel:#2a1f19;--muted:#c9b8a0}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Cinzel,Georgia,monospace;font-weight:400;line-height:1.3;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(18px,4.6vw,26px);color:var(--shell)}
+:root[data-theme=dark] h1{color:#e9c46a}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) h1{color:#e9c46a}}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 18px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--btn);outline-offset:2px}
+.ghost{background:var(--shell);color:#fff;font-weight:800}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pl{flex:1 1 120px;background:var(--panel);border-radius:12px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800;box-shadow:0 2px 0 #0002}
+.pl b{font-family:Cinzel,Georgia;font-size:18px}
+.pl.now{border-color:var(--shell)}
+.turn{font-weight:800;color:var(--shell);margin:0 0 8px;font-size:18px}
+:root[data-theme=dark] .turn{color:#e9c46a}
+.console{background:var(--shell);border-radius:20px 20px 48px 20px;padding:18px 18px 22px;box-shadow:0 8px 0 var(--shell2)}
+.bezel{background:#2a1712;border-radius:10px 10px 30px 10px;padding:14px 16px 18px}
+.led{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#e8d3b0;margin-bottom:8px}
+.led i{width:10px;height:10px;border-radius:50%;background:#ffb347;box-shadow:0 0 8px #ffb347}
+.screen{background:var(--lcd);color:var(--lcdink);border-radius:6px;padding:16px;background-image:radial-gradient(circle at 20% 10%,#ffffff55,#0000 60%);box-shadow:inset 0 0 0 3px var(--lcd2)}
+.meta{font-size:14px;font-weight:800;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;opacity:.8}
+.q{font-weight:800;font-size:clamp(22px,5.4vw,30px);line-height:1.2;margin:10px 0 4px;text-wrap:balance}
+.fact{font-size:16px;min-height:24px;margin:0;font-weight:600}
+.brand{margin:10px 4px 0;font-family:Cinzel,Georgia;font-size:11px;color:#f0dcc0;opacity:.85}
+.bounce{animation:bn .5s ease 1}
+@keyframes bn{40%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.bounce{animation:none}}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.opt{background:var(--btn);color:var(--ink);font-weight:800;font-size:clamp(17px,4.2vw,21px);line-height:1.2;min-height:76px;border-radius:16px;box-shadow:0 5px 0 #b8913a;transition:transform .1s}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #b8913a}
+.opt.good{background:var(--ok);color:#fff;box-shadow:0 5px 0 #1f7d3e}
+.opt.bad{background:var(--bad);color:#fff;box-shadow:0 5px 0 #a42d25}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 160px}
+.go{background:var(--shell);color:#fff;font-family:Cinzel,Georgia;font-size:14px;line-height:1.4;box-shadow:0 5px 0 var(--shell2)}
+.res{font-family:Cinzel,Georgia;font-size:15px;text-align:center;min-height:30px;margin:16px 0 0;color:var(--shell)}
+:root[data-theme=dark] .res{color:#e9c46a}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:16px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--shell);color:#fff;border-color:var(--shell)}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.end{text-align:center}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--btn);color:var(--ink)}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:12px}
+.duo{margin-top:22px;padding-top:18px;border-top:2px dashed currentColor}
+.duo h2{margin-bottom:6px}
+.join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
+.codebar{font-weight:800;text-align:center;padding:8px 12px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
+.timer{height:12px;border-radius:99px;background:#00000026;overflow:hidden;margin-top:16px}
+.timer i{display:block;height:100%;width:100%;background:#ffc93c;border-radius:99px}
+#ready{width:100%;margin-top:16px;min-height:76px}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}.console{padding:14px 14px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Preguntas de Harry Potter</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="newGame">Nueva partida</button></span>
+  </header>
+
+  <section id="game">
+    <p class="codebar" id="codebar" hidden></p>
+    <div class="score" id="score"></div>
+    <p class="turn" id="turn"></p>
+    <div class="console" id="blk">
+      <div class="bezel">
+        <div class="led"><i></i>Pergamino</div>
+        <div class="screen">
+          <div class="meta"><span id="num"></span><span id="cat"></span></div>
+          <p class="q" id="q"></p>
+          <p class="fact" id="fact"></p>
+        </div>
+      </div>
+      <p class="brand">Concurso de magia</p>
+    </div>
+    <div class="timer" aria-hidden="true"><i id="bar"></i></div>
+    <button class="go" id="ready" hidden></button>
+    <div class="opts" id="opts"></div>
+    <p class="res" id="res" aria-live="polite"></p>
+    <div class="row"><button class="go" id="next" hidden>Siguiente</button></div>
+  </section>
+
+  <section id="end" class="end" hidden>
+    <div class="console"><div class="bezel"><div class="screen"><p class="q" id="winner"></p><p class="fact">Fin de la partida</p></div></div></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+    <div id="codeEnd" hidden><button class="go" id="mkCode2" style="width:100%">Crear otra partida con código</button><button class="ghost" id="joinAgain" style="width:100%;margin-top:10px">Unirme con un código nuevo</button></div>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Temas</label>
+    <div class="chips" id="cats"></div>
+    <label>Dificultad</label>
+    <div class="chips" id="lvls"></div>
+    <label>Preguntas para cada jugador</label>
+    <div class="chips" id="lens"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note" id="count"></p>
+    <div class="duo">
+      <h2>Jugar en dos móviles</h2>
+      <p class="note">Crea una partida y dile el código al otro. Los dos tendréis las mismas preguntas en el mismo orden. Cada uno juega en su móvil con el nombre del Jugador 1 y al final comparáis los puntos.</p>
+      <button class="go" id="mkCode" style="width:100%">Crear partida con código</button>
+      <label for="joinCode">¿Te han dado un código?</label>
+      <div class="join"><input id="joinCode" inputmode="numeric" autocomplete="off" placeholder="Ej.: 123 456"><button class="go" id="joinBtn">Unirse</button></div>
+      <p class="note" id="codeMsg" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="note">Juego de preguntas hecho por fans para jugar en familia; no es un producto oficial de Harry Potter. Los nombres son los de los libros en España.</p>
+</div>
+
+<script>
+{
+// [pregunta, respuesta, [falsas], tema, nivel 1=fácil 2=difícil]
+const Q=[
+["¿Cómo se llaman los mejores amigos de Harry?","Ron y Hermione",["Draco y Neville","Fred y George","Luna y Ginny"],"pers",1],
+["¿Cómo se llama la lechuza de Harry?","Hedwig",["Errol","Pigwidgeon","Fawkes"],"pers",1],
+["¿Qué animal es Fawkes, la mascota de Dumbledore?","Un fénix",["Una lechuza","Un dragón","Un hipogrifo"],"pers",1],
+["¿Cómo se llama el elfo doméstico que ayuda a Harry?","Dobby",["Kreacher","Winky","Griphook"],"pers",1],
+["¿Quién es el guardabosques de Hogwarts?","Hagrid",["Filch","Lupin","Slughorn"],"pers",1],
+["¿Cómo se llama la gata del conserje Filch?","La Señora Norris",["Crookshanks","Hedwig","Scabbers"],"pers",2],
+["¿Cómo se llama el gato de Hermione?","Crookshanks",["La Señora Norris","Scabbers","Trevor"],"pers",2],
+["¿Qué mascota tiene Ron al principio?","Una rata llamada Scabbers",["Un sapo llamado Trevor","Una lechuza blanca","Un gato naranja"],"pers",1],
+["¿Qué mascota tiene Neville?","Un sapo",["Una rata","Un gato","Una lechuza"],"pers",2],
+["¿Quién es el padrino de Harry?","Sirius Black",["Remus Lupin","Hagrid","Dumbledore"],"pers",1],
+["¿Cuál es el nombre de verdad de Voldemort?","Tom Ryddle",["Tom Malfoy","Gellert Grindelwald","Severus Snape"],"pers",2],
+["¿Qué profesor enseña Pociones en los primeros libros?","Severus Snape",["Minerva McGonagall","Filius Flitwick","Gilderoy Lockhart"],"pers",1],
+["¿Quién es la jefa de la casa Gryffindor?","Minerva McGonagall",["Pomona Sprout","Dolores Umbridge","Sybill Trelawney"],"pers",2],
+["¿En qué animal se puede transformar McGonagall?","En un gato",["En un perro","En una rata","En un ciervo"],"pers",2],
+["¿En qué animal se transforma Sirius Black?","En un perro negro",["En un lobo","En un gato","En una rata"],"pers",2],
+["¿Qué le pasa a Remus Lupin con la luna llena?","Se convierte en hombre lobo",["Se vuelve invisible","Se queda dormido","Puede volar"],"pers",1],
+["¿Cuántos hermanos tiene Ron?","6",["3","4","5"],"pers",2],
+["¿Cómo se llaman los gemelos Weasley?","Fred y George",["Bill y Charlie","Percy y Ron","Harry y Ron"],"pers",1],
+["¿Cómo se llama la hermana de Ron?","Ginny",["Luna","Hermione","Cho"],"pers",1],
+["¿Quién es el gran rival de Harry en el colegio?","Draco Malfoy",["Neville Longbottom","Cedric Diggory","Seamus Finnigan"],"pers",1],
+["¿Con qué tíos vive Harry?","Los Dursley",["Los Weasley","Los Malfoy","Los Lovegood"],"pers",1],
+["¿Cómo se llama el primo de Harry?","Dudley",["Vernon","Percy","Dennis"],"pers",1],
+["¿Dónde duerme Harry al principio en casa de sus tíos?","En la alacena debajo de la escalera",["En el desván","En el jardín","En el garaje"],"pers",1],
+["¿Quién le dice a Harry que es un mago?","Hagrid",["Dumbledore","McGonagall","Ron"],"pers",1],
+["¿Cómo se llaman los padres de Harry?","James y Lily",["Arthur y Molly","Vernon y Petunia","Frank y Alice"],"pers",1],
+["¿Qué es Griphook?","Un duende del banco Gringotts",["Un elfo doméstico","Un fantasma","Un centauro"],"pers",2],
+["¿Quién es Nick Casi Decapitado?","El fantasma de Gryffindor",["El fantasma de Slytherin","Un profesor","Un elfo"],"pers",2],
+["¿Cómo se llama el perro de tres cabezas de Hagrid?","Fluffy",["Norberto","Buckbeak","Aragog"],"pers",2],
+["¿Cómo se llama el dragón bebé de Hagrid?","Norberto",["Fluffy","Aragog","Buckbeak"],"pers",2],
+["¿Qué es Buckbeak?","Un hipogrifo",["Un dragón","Un fénix","Un centauro"],"pers",2],
+["¿Qué es Aragog?","Una araña gigante",["Un dragón","Una serpiente","Un trol"],"pers",2],
+["¿Quién lleva unos pendientes de rábano?","Luna Lovegood",["Ginny Weasley","Hermione Granger","Cho Chang"],"pers",2],
+["¿Quién es el director de Hogwarts durante casi toda la saga?","Albus Dumbledore",["Severus Snape","Hagrid","Filch"],"pers",1],
+["¿Qué hechizo hace flotar las cosas?","Wingardium Leviosa",["Expelliarmus","Lumos","Accio"],"magia",1],
+["¿Qué hechizo enciende una luz en la punta de la varita?","Lumos",["Nox","Incendio","Alohomora"],"magia",1],
+["¿Qué hechizo apaga la luz de la varita?","Nox",["Lumos","Finite","Silencio"],"magia",2],
+["¿Qué hechizo abre puertas cerradas con llave?","Alohomora",["Accio","Reparo","Lumos"],"magia",1],
+["¿Qué hechizo le quita la varita al rival?","Expelliarmus",["Desmaius","Petrificus Totalus","Riddikulus"],"magia",1],
+["¿Qué hechizo atrae un objeto hacia ti?","Accio",["Alohomora","Reparo","Wingardium Leviosa"],"magia",1],
+["¿Qué hechizo hace aparecer un Patronus?","Expecto Patronum",["Expelliarmus","Lumos Maxima","Protego"],"magia",1],
+["¿Contra qué criaturas se usa el Patronus?","Contra los dementores",["Contra los trols","Contra los dragones","Contra las arañas"],"magia",1],
+["¿Qué forma tiene el Patronus de Harry?","Un ciervo",["Un perro","Una nutria","Un fénix"],"magia",2],
+["¿Qué forma tiene el Patronus de Hermione?","Una nutria",["Un gato","Un ciervo","Un conejo"],"magia",2],
+["¿Qué hechizo se usa contra un boggart?","Riddikulus",["Expelliarmus","Lumos","Obliviate"],"magia",2],
+["¿Qué hechizo borra la memoria?","Obliviate",["Riddikulus","Accio","Protego"],"magia",2],
+["¿Qué hechizo arregla las cosas rotas?","Reparo",["Accio","Alohomora","Nox"],"magia",1],
+["¿Qué hechizo deja a alguien tieso como una tabla?","Petrificus Totalus",["Desmaius","Expelliarmus","Lumos"],"magia",2],
+["¿Qué hechizo crea un escudo protector?","Protego",["Accio","Reparo","Nox"],"magia",2],
+["¿Qué poción da muy buena suerte?","Felix Felicis",["Poción multijugos","Veritaserum","Amortentia"],"magia",2],
+["¿Qué poción te convierte en otra persona?","Poción multijugos",["Felix Felicis","Veritaserum","Amortentia"],"magia",2],
+["¿Qué poción obliga a decir la verdad?","Veritaserum",["Felix Felicis","Poción multijugos","Poción matalobos"],"magia",2],
+["¿Qué objeto hace invisible a Harry?","La capa de invisibilidad",["El giratiempo","El mapa del merodeador","La varita de saúco"],"magia",1],
+["¿Qué mapa enseña dónde está cada persona en Hogwarts?","El mapa del merodeador",["El mapa de Hogsmeade","El mapa de la Orden","El mapa del tesoro"],"magia",1],
+["¿Qué usa Hermione para ir a dos clases a la vez?","Un giratiempo",["Una capa","Un traslador","Una recordadora"],"magia",2],
+["¿Qué es un traslador?","Un objeto que te lleva a otro sitio al tocarlo",["Una escoba muy rápida","Un hechizo de fuego","Un animal mágico"],"magia",2],
+["¿Qué es una recordadora?","Una bola que se pone roja si has olvidado algo",["Un diario mágico","Una varita","Un reloj"],"magia",2],
+["¿Qué lleva dentro la varita de Harry?","Una pluma de fénix",["Un pelo de unicornio","Fibra de corazón de dragón","Un pelo de veela"],"magia",2],
+["¿En qué tienda del callejón Diagon se compran varitas?","Ollivander",["Gringotts","Flourish y Blotts","Sortilegios Weasley"],"magia",1],
+["¿Cuáles son las tres Reliquias de la Muerte?","Varita de saúco, piedra de la resurrección y capa de invisibilidad",["Espada, copa y diadema","Varita, escoba y mapa","Giratiempo, capa y espejo"],"magia",2],
+["¿Qué son los horrocruxes?","Objetos donde Voldemort esconde trozos de su alma",["Pociones prohibidas","Dragones guardianes","Llaves mágicas"],"magia",2],
+["¿Qué espejo enseña lo que más deseas?","El espejo de Oesed",["El espejo de Gringotts","El espejo del Sombrero","El espejo de Azkaban"],"magia",2],
+["¿Cuántas casas hay en Hogwarts?","4",["3","5","6"],"hogw",1],
+["¿En qué casa está Harry?","Gryffindor",["Slytherin","Hufflepuff","Ravenclaw"],"hogw",1],
+["¿En qué casa está Draco Malfoy?","Slytherin",["Gryffindor","Hufflepuff","Ravenclaw"],"hogw",1],
+["¿Qué animal representa a Gryffindor?","Un león",["Una serpiente","Un tejón","Un águila"],"hogw",1],
+["¿Qué animal representa a Hufflepuff?","Un tejón",["Un león","Una serpiente","Un águila"],"hogw",1],
+["¿Qué animal representa a Ravenclaw?","Un águila",["Un cuervo","Un león","Un tejón"],"hogw",2],
+["¿Qué animal representa a Slytherin?","Una serpiente",["Un león","Un águila","Un tejón"],"hogw",1],
+["¿Quién decide a qué casa vas?","El Sombrero Seleccionador",["Dumbledore","Un examen","Un hechizo"],"hogw",1],
+["¿De qué andén sale el tren a Hogwarts?","Del andén nueve y tres cuartos",["Del andén siete y medio","Del andén diez","Del andén doce y cuarto"],"hogw",1],
+["¿Cómo se llama el tren que lleva a Hogwarts?","Expreso de Hogwarts",["Tren Mágico","Expreso Nocturno","Autobús noctámbulo"],"hogw",1],
+["¿Cómo se llama el pueblo de magos que hay junto a Hogwarts?","Hogsmeade",["Godric's Hollow","Little Whinging","Ottery St. Catchpole"],"hogw",2],
+["¿Cómo se llama el deporte de los magos?","Quidditch",["Escobol","Fútbol mágico","Quodpot"],"hogw",1],
+["¿Cuántos jugadores tiene un equipo de Quidditch?","7",["5","9","11"],"hogw",2],
+["¿En qué puesto juega Harry al Quidditch?","Buscador",["Guardián","Golpeador","Cazador"],"hogw",1],
+["¿Qué pelota tiene que atrapar el buscador?","La snitch dorada",["La quaffle","La bludger","La pelota roja"],"hogw",1],
+["¿Cuántos puntos vale atrapar la snitch?","150",["10","50","100"],"hogw",2],
+["¿Qué es el Gran Comedor?","Donde comen todos los alumnos",["La biblioteca","El campo de Quidditch","La cocina de los elfos"],"hogw",1],
+["¿Dónde está la sala común de Slytherin?","En las mazmorras, bajo el lago",["En lo alto de una torre","Junto a las cocinas","En el bosque"],"hogw",2],
+["¿Cómo se llama el bosque peligroso que hay junto a Hogwarts?","Bosque Prohibido",["Bosque Oscuro","Bosque Encantado","Bosque de Dean"],"hogw",1],
+["¿Qué árbol da golpes a quien se acerca?","El sauce boxeador",["El roble loco","El pino furioso","El abeto gruñón"],"hogw",1],
+["¿Cómo se llama el banco de los magos?","Gringotts",["Ollivander","Azkaban","Honeydukes"],"hogw",1],
+["¿Qué es Azkaban?","La cárcel de los magos",["Un colegio","Un banco","Una tienda de dulces"],"hogw",1],
+["¿Cómo se llama la tienda de dulces de Hogsmeade?","Honeydukes",["Zonko","Las Tres Escobas","Cabeza de Puerco"],"hogw",2],
+["¿Qué bebida famosa toman en Las Tres Escobas?","Cerveza de mantequilla",["Zumo de calabaza","Té con leche","Chocolate caliente"],"hogw",2],
+["¿Qué caramelos tienen todos los sabores, hasta los más asquerosos?","Grageas de todos los sabores",["Ranas de chocolate","Meigas fritas","Plumas de azúcar"],"hogw",1],
+["¿Qué viene dentro de cada rana de chocolate?","Un cromo de un mago famoso",["Una moneda","Un juguete","Un mensaje secreto"],"hogw",2],
+["¿Qué colegios van a Hogwarts al Torneo de los Tres Magos?","Beauxbatons y Durmstrang",["Ilvermorny y Castelobruxo","Mahoutokoro y Uagadou","Ninguno, es solo de Hogwarts"],"hogw",2],
+["¿Cómo se titula el primer libro?","Harry Potter y la piedra filosofal",["Harry Potter y la cámara secreta","Harry Potter y el cáliz de fuego","Harry Potter y el prisionero de Azkaban"],"libros",1],
+["¿Cuántos libros principales tiene la saga?","7",["5","6","8"],"libros",1],
+["¿Cuántas películas principales de Harry Potter hay?","8",["6","7","10"],"libros",2],
+["¿Quién escribió los libros de Harry Potter?","J. K. Rowling",["Roald Dahl","J. R. R. Tolkien","Laura Gallego"],"libros",1],
+["¿En qué libro se celebra el Torneo de los Tres Magos?","Harry Potter y el cáliz de fuego",["Harry Potter y la Orden del Fénix","Harry Potter y la piedra filosofal","Harry Potter y el misterio del príncipe"],"libros",2],
+["¿En qué libro aparece Sirius Black por primera vez?","Harry Potter y el prisionero de Azkaban",["Harry Potter y la cámara secreta","Harry Potter y el cáliz de fuego","Harry Potter y las reliquias de la Muerte"],"libros",2],
+["¿Qué monstruo vive en la Cámara Secreta?","Un basilisco",["Un dragón","Una esfinge","Un trol"],"libros",2],
+["¿Qué actor hace de Harry en las películas?","Daniel Radcliffe",["Rupert Grint","Tom Felton","Robert Pattinson"],"libros",1],
+["¿Qué actriz hace de Hermione en las películas?","Emma Watson",["Emma Stone","Bonnie Wright","Evanna Lynch"],"libros",1],
+["¿Qué actor hace de Ron en las películas?","Rupert Grint",["Daniel Radcliffe","Tom Felton","Matthew Lewis"],"libros",2],
+["¿En qué año se estrenó la primera película?","2001",["1997","1999","2005"],"libros",2],
+["¿Qué forma tiene la cicatriz de Harry?","Un rayo",["Una estrella","Una luna","Una cruz"],"libros",1],
+["¿Cómo llaman los magos a las personas sin magia?","Muggles",["Squibs","Elfos","Centauros"],"libros",1],
+["¿Cómo se llaman los seguidores de Voldemort?","Mortífagos",["Aurores","Inferi","Dementores"],"libros",2],
+["¿Qué es un auror?","Un mago que caza a magos tenebrosos",["Un profesor de Hogwarts","Un elfo doméstico","Un tipo de escoba"],"libros",2],
+["¿Qué escoba le regalan a Harry en el primer libro?","Una Nimbus 2000",["Una Saeta de Fuego","Una Barredora 7","Una Nimbus 2001"],"libros",2],
+["¿Qué escoba le regala Sirius a Harry?","Una Saeta de Fuego",["Una Nimbus 2000","Una Nimbus 2001","Una Cometa 260"],"libros",2],
+["¿Qué autobús recoge a los magos que se han perdido?","El autobús noctámbulo",["El Expreso de Hogwarts","El autobús muggle","El traslador"],"libros",2]];
+const CATS=[["pers","Personajes y criaturas"],["magia","Hechizos y objetos mágicos"],["hogw","Hogwarts y el mundo mágico"],["libros","Libros y películas"]];
+const LVLS=[["1","Fácil"],["2","Difícil"]];
+const LENS=[3,5,8,10];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
+let cfg=load('hp-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:5,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=5;
+let st=null;
+function chips(el,list,isOn,toggle){
+  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
+}
+const pool=()=>ALL.filter(s=>cfg.cats.includes(s.c)&&cfg.lvls.includes(s.l));
+function renderSetup(){
+  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
+  const all=()=>CATS.every(c=>cfg.cats.includes(c[0]));
+  chips($('cats'),[["all","Todos los temas"],...CATS],k=>k==='all'?all():cfg.cats.includes(k),k=>{if(k==='all')cfg.cats=all()?[]:CATS.map(c=>c[0]);else tg(cfg.cats,k)});
+  chips($('lvls'),LVLS,k=>cfg.lvls.includes(k),k=>tg(cfg.lvls,k));
+  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
+  const n=pool().length;
+  $('count').textContent=n?`Hay ${n} preguntas disponibles con estos ajustes.`:'Elige al menos un tema y una dificultad.';
+  save('hp-cfg',cfg);
+}
+const board=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function start(){
+  if(st)clearTimeout(st.timer);
+  $('codebar').hidden=true;
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('hp-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  const p=pool();
+  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
+  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
+  const need=per*players.length;
+  let seen=load('hp-seen',[]);
+  const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
+  if(fresh.length<need){seen=[];save('hp-seen',seen)}
+  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,per};
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+function show(){
+  const s=st.q[st.i],n=st.players.length;
+  board();
+  $('turn').textContent=n>1?`Le toca a ${st.players[st.turn]}`:'';
+  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Pregunta ${st.i+1} de ${st.q.length}`;
+  $('cat').textContent=CATS.find(c=>c[0]===s.c)[1]+(s.l==='2'?' · difícil':'');
+  $('q').textContent=s.q;$('fact').textContent='';$('res').textContent='';$('next').hidden=true;
+  $('opts').innerHTML=(st.code?sshuffle([s.ans,...s.w],rng(st.code*97+st.i)):shuffle([s.ans,...s.w])).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+function answer(b){
+  const s=st.q[st.i],ok=b.dataset.o===s.ans;
+  const seen=load('hp-seen',[]);if(!seen.includes(s.q)){seen.push(s.q);save('hp-seen',seen)}
+  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
+  if(!ok)b.classList.add('bad');else st.pts[st.turn]++;
+  $('fact').textContent='Respuesta: '+s.ans;
+  $('res').textContent=ok?'¡Correcto! +1 punto':'¡Casi!';
+  const k=$('blk');k.classList.remove('bounce');void k.offsetWidth;if(ok)k.classList.add('bounce');
+  board();
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente');
+  $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
+}
+function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
+  st.i++;st.turn=(st.turn+1)%st.players.length;
+  if(st.i<st.q.length){show();return}
+  $('next').hidden=true;
+  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
+  const tie=r.length>1&&r[0][1]===r[1][1];
+  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
+  $('game').hidden=true;$('end').hidden=false;
+  $('again').hidden=!!st.code;$('codeEnd').hidden=!st.code;
+  if(st.code){$('winner').textContent=`${st.pts[0]} de ${st.q.length} aciertos`;$('rank').innerHTML=`<li><span>Código ${fmt(st.code)}</span><span>¡Comparad los puntos!</span></li>`}
+}
+const enc=()=>{let b=0;CATS.forEach((c,i)=>{if(cfg.cats.includes(c[0]))b|=1<<i});LVLS.forEach((l,i)=>{if(cfg.lvls.includes(l[0]))b|=1<<(4+i)});return b|LENS.indexOf(cfg.len)<<6};
+const dec=b=>{cfg.cats=CATS.filter((c,i)=>b>>i&1).map(c=>c[0]);cfg.lvls=LVLS.filter((l,i)=>b>>(4+i)&1).map(l=>l[0]);cfg.len=LENS[b>>6&3]};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const sshuffle=(a,r)=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>String(n).replace(/(\d{3})(\d{3})/,'$1 $2');
+function playCode(N){
+  const seed=Math.floor(N/256),b=N%256;
+  if(!(seed>=400&&seed<=999)){$('codeMsg').textContent='Ese código no es válido. Tiene que tener 6 números.';return}
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());
+  dec(b);renderSetup();
+  const p=pool();
+  if(!p.length){$('codeMsg').textContent='Ese código no es válido.';return}
+  if(st)clearTimeout(st.timer);
+  const q=sshuffle(p,rng(N)).slice(0,Math.min(cfg.len,p.length));
+  st={players:[cfg.names[0]||'Jugador 1'],pts:[0],q,i:0,turn:0,per:q.length,code:N,wait:true,key:s=>s.p?s.p+s.ans:s.q};
+  $('codebar').hidden=false;$('codebar').textContent='Partida con código '+fmt(N);$('codeMsg').textContent='';
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+$('mkCode').onclick=()=>{if(!pool().length){renderSetup();return}playCode((400+Math.floor(Math.random()*600))*256+enc())};
+$('joinBtn').onclick=()=>playCode(parseInt($('joinCode').value.replace(/\D/g,''),10)||0);
+$('mkCode2').onclick=()=>$('mkCode').click();
+$('joinAgain').onclick=()=>{$('joinCode').value='';$('joinCode').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('joinCode').focus(),400)};
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
+$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
+$('next').onclick=next;$('start').onclick=start;$('again').onclick=start;
+$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('hp-cfg',cfg)}));
+
+// ===== Tiempo y puntos por rapidez =====
+const TOTAL=20;let QT=null;
+const cur=()=>st.q[st.i];
+const renderScore=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function stopTimer(){clearTimeout(QT);const b=$('bar');b.style.width=getComputedStyle(b).width;b.style.transition='none'}
+function startQ(){
+  clearTimeout(QT);st.t0=performance.now();
+  const b=$('bar');b.style.transition='none';b.style.width='100%';void b.offsetWidth;
+  b.style.transition=`width ${TOTAL}s linear`;b.style.width='0%';
+  QT=setTimeout(()=>{if(!document.querySelector('.opt:disabled'))answer(null)},TOTAL*1000);
+}
+const _show=show;
+show=function(){
+  clearTimeout(QT);
+  if(!st.hits)st.hits=st.players.map(()=>0);
+  _show();renderScore();
+  const box=$('blk')||$('tape'),hb=$('hintBtn');
+  if((st.players.length>1&&!st.code)||st.wait){
+    $('opts').hidden=true;$('ready').hidden=false;box.hidden=true;if(hb)hb.style.visibility='hidden';
+    $('ready').textContent=st.wait?'Empezar la partida':`${st.players[st.turn]}, pulsa cuando estés listo`;
+    if(st.wait)$('res').textContent=`Código ${fmt(st.code)}. Cuando todos hayáis entrado, pulsad «Empezar».`;
+    const b=$('bar');b.style.transition='none';b.style.width='100%';
+  }else{box.hidden=false;if(hb)hb.style.visibility='';$('opts').hidden=false;$('ready').hidden=true;startQ()}
+};
+$('ready').onclick=()=>{st.wait=false;const hb=$('hintBtn');if(hb)hb.style.visibility='';$('res').textContent='';$('ready').hidden=true;($('blk')||$('tape')).hidden=false;$('opts').hidden=false;startQ()};
+const _answer=answer;
+answer=function(b){
+  stopTimer();
+  const el=(performance.now()-st.t0)/1000,s=cur(),ok=!!b&&b.dataset.o===s.ans;
+  const gain=ok?Math.round(500+500*Math.max(0,1-el/TOTAL)):0;
+  const before=st.pts[st.turn];
+  _answer(b||{dataset:{o:'\u0000'},classList:{add(){}}});
+  st.pts[st.turn]=before+gain;if(ok)st.hits[st.turn]++;
+  renderScore();
+  $('res').textContent=ok?`¡Correcto! +${gain} puntos`:(b?'¡Casi! 0 puntos':'¡Se acabó el tiempo!');
+};
+const _next=next;
+next=function(){
+  clearTimeout(QT);_next();
+  if($('end').hidden)return;
+  const n=st.players.length,per=st.code?st.q.length:st.per;
+  const r=st.players.map((p,i)=>[p,st.pts[i],st.hits[i]]).sort((a,b)=>b[1]-a[1]);
+  if(st.code){
+    $('winner').textContent=`${r[0][1]} puntos`;
+    $('rank').innerHTML=`<li><span>${r[0][2]} de ${per} aciertos</span><span>Código ${fmt(st.code)}</span></li><li style="background:none;justify-content:center">¡Comparad los puntos!</li>`;
+  }else{
+    const tie=n>1&&r[0][1]===r[1][1];
+    $('winner').textContent=n===1?`${r[0][1]} puntos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+    $('rank').innerHTML=r.map(([p,pt,h])=>`<li><span>${esc(p)}</span><span>${pt} puntos · ${h}/${per}</span></li>`).join('');
+  }
+};
+$('next').onclick=next;
+renderSetup();start();
+}
+</script>
+</body>
+</html>
