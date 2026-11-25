@@ -64,6 +64,13 @@ h1 span{color:var(--sun)}
 .book{width:120px;height:140px;background:#7a2e2e;border-radius:6px 14px 14px 6px;box-shadow:8px 8px 0 #0002,inset 10px 0 0 #5a1f1f;position:relative;display:grid;place-items:center}
 .page{width:70px;height:96px;background:#f3e4bf;border-radius:4px;background-image:repeating-linear-gradient(#0000 0 12px,#3b241433 12px 14px);background-position:0 10px}
 .flame{position:absolute;top:-26px;right:10px;width:14px;height:22px;background:#ffb347;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;box-shadow:0 0 14px #ffb347}
+/* cole */
+.cole .art{background:#eef3ea;border-radius:22px 22px 0 0}
+.cole .info{border-radius:0 0 22px 22px}
+.cole h2{font-family:Fredoka}
+.cole .play{background:#2f5d46;border-radius:12px}
+.board{width:150px;height:100px;background:#2f5d46;border:10px solid #8a5a33;border-radius:6px;display:grid;place-items:center;box-shadow:0 8px 0 #0002}
+.board span{font:700 26px Fredoka,sans-serif;color:#f4f7ef}
 .foot{margin-top:28px;color:#c9d4ff;font-size:14px}
 @media(max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}.art{height:150px}}
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
@@ -89,6 +96,10 @@ h1 span{color:var(--sun)}
     <a class="game hp" href="harrypotter.html">
       <div class="art"><div class="book"><div class="page"></div><span class="flame"></span></div></div>
       <div class="info"><h2>Harry Potter</h2><p>Preguntas de personajes, hechizos, Hogwarts y películas.</p><span class="play">Jugar</span></div>
+    </a>
+    <a class="game cole" href="cole.html">
+      <div class="art"><div class="board"><span>2 + 2</span></div></div>
+      <div class="info"><h2>Trivial del cole</h2><p>5.º y 6.º de Primaria, 1.º y 2.º de ESO: mates, lengua, ciencias, historia e inglés.</p><span class="play">Jugar</span></div>
     </a>
   </div>
   <p class="foot">Cada juego recuerda sus ajustes y las preguntas que ya han salido en este móvil.</p>
