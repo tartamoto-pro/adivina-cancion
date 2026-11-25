@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Trivial total</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: gran concurso familiar, festivo y claro
+   IDEA: el panel de un plató de concurso: la pregunta sale en la pantalla grande
+   PICTURE: marco rojo de plató con pantalla azul noche y piloto
+   COLOUR and TYPE: rojo plató, azul pantalla, botones amarillos; Fredoka + Nunito
+   LAYOUT: una columna: marcador, panel, 4 botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:#fff3e8;--shell:#c0392b;--shell2:#922b21;--lcd:#1d3557;--lcd2:#16294a;--lcdink:#f1f4ff;--btn:#ffd23f;--ink:#1c241e;--on:#1c241e;--ok:#2fb35a;--bad:#e2463c;--panel:#ffffff;--muted:#55665a}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1a1214;--on:#eef3ea;--panel:#1d2a22;--muted:#a9bcae}}
+:root[data-theme=dark]{--bg:#1a1214;--on:#eef3ea;--panel:#1d2a22;--muted:#a9bcae}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Fredoka,Nunito,monospace;font-weight:400;line-height:1.3;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(18px,4.6vw,26px);color:var(--shell)}
+:root[data-theme=dark] h1{color:#e9c46a}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) h1{color:#e9c46a}}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 18px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--btn);outline-offset:2px}
+.ghost{background:var(--shell);color:#fff;font-weight:800}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pl{flex:1 1 120px;background:var(--panel);border-radius:12px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800;box-shadow:0 2px 0 #0002}
+.pl b{font-family:Fredoka,Nunito;font-size:18px}
+.pl.now{border-color:var(--shell)}
+.turn{font-weight:800;color:var(--shell);margin:0 0 8px;font-size:18px}
+:root[data-theme=dark] .turn{color:#e9c46a}
+.console{background:var(--shell);border-radius:20px 20px 48px 20px;padding:18px 18px 22px;box-shadow:0 8px 0 var(--shell2)}
+.bezel{background:#5a1d17;border-radius:10px 10px 30px 10px;padding:14px 16px 18px}
+.led{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#f3e3cc;margin-bottom:8px}
+.led i{width:10px;height:10px;border-radius:50%;background:#f4f7ef;box-shadow:0 0 8px #f4f7ef}
+.screen{background:var(--lcd);color:var(--lcdink);border-radius:6px;padding:16px;background-image:radial-gradient(circle at 30% 20%,#ffffff14,#0000 60%);box-shadow:inset 0 0 0 3px var(--lcd2)}
+.meta{font-size:14px;font-weight:800;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;opacity:.8}
+.q{font-weight:800;font-size:clamp(22px,5.4vw,30px);line-height:1.2;margin:10px 0 4px;text-wrap:balance}
+.fact{font-size:16px;min-height:24px;margin:0;font-weight:600}
+.brand{margin:10px 4px 0;font-family:Fredoka,Nunito;font-size:11px;color:#f3e3cc;opacity:.85}
+.bounce{animation:bn .5s ease 1}
+@keyframes bn{40%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.bounce{animation:none}}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.opt{background:var(--btn);color:var(--ink);font-weight:800;font-size:clamp(17px,4.2vw,21px);line-height:1.2;min-height:76px;border-radius:16px;box-shadow:0 5px 0 #b8913a;transition:transform .1s}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #b8913a}
+.opt.good{background:var(--ok);color:#fff;box-shadow:0 5px 0 #1f7d3e}
+.opt.bad{background:var(--bad);color:#fff;box-shadow:0 5px 0 #a42d25}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 160px}
+.go{background:var(--shell);color:#fff;font-family:Fredoka,Nunito;font-size:14px;line-height:1.4;box-shadow:0 5px 0 var(--shell2)}
+.res{font-family:Fredoka,Nunito;font-size:15px;text-align:center;min-height:30px;margin:16px 0 0;color:var(--shell)}
+:root[data-theme=dark] .res{color:#e9c46a}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:16px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--shell);color:#fff;border-color:var(--shell)}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.end{text-align:center}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--btn);color:var(--ink)}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:12px}
+.duo{margin-top:22px;padding-top:18px;border-top:2px dashed currentColor}
+.duo h2{margin-bottom:6px}
+.join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
+.codebar{font-weight:800;text-align:center;padding:8px 12px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
+.timer{height:12px;border-radius:99px;background:#00000026;overflow:hidden;margin-top:16px}
+.timer i{display:block;height:100%;width:100%;background:#ffc93c;border-radius:99px}
+#ready{width:100%;margin-top:16px;min-height:76px}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}.console{padding:14px 14px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Trivial total</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="newGame">Nueva partida</button></span>
+  </header>
+
+  <section id="game">
+    <p class="codebar" id="codebar" hidden></p>
+    <div class="score" id="score"></div>
+    <p class="turn" id="turn"></p>
+    <div class="console" id="blk">
+      <div class="bezel">
+        <div class="led"><i></i>Todos los juegos</div>
+        <div class="screen">
+          <div class="meta"><span id="num"></span><span id="cat"></span></div>
+          <p class="q" id="q"></p>
+          <p class="fact" id="fact"></p>
+        </div>
+      </div>
+      <p class="brand">Trivial total</p>
+    </div>
+    <div class="timer" aria-hidden="true"><i id="bar"></i></div>
+    <button class="go" id="ready" hidden></button>
+    <div class="opts" id="opts"></div>
+    <p class="res" id="res" aria-live="polite"></p>
+    <div class="row"><button class="go" id="next" hidden>Siguiente</button></div>
+  </section>
+
+  <section id="end" class="end" hidden>
+    <div class="console"><div class="bezel"><div class="screen"><p class="q" id="winner"></p><p class="fact">Fin de la partida</p></div></div></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+    <div id="codeEnd" hidden><button class="go" id="mkCode2" style="width:100%">Crear otra partida con código</button><button class="ghost" id="joinAgain" style="width:100%;margin-top:10px">Unirme con un código nuevo</button></div>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Temas</label>
+    <div class="chips" id="cats"></div>
+    <label>Curso</label>
+    <div class="chips" id="lvls"></div>
+    <label>Preguntas para cada jugador</label>
+    <div class="chips" id="lens"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note" id="count"></p>
+    <div class="duo">
+      <h2>Jugar en dos móviles</h2>
+      <p class="note">Crea una partida y dile el código al otro. Los dos tendréis las mismas preguntas en el mismo orden. Cada uno juega en su móvil con el nombre del Jugador 1 y al final comparáis los puntos.</p>
+      <button class="go" id="mkCode" style="width:100%">Crear partida con código</button>
+      <label for="joinCode">¿Te han dado un código?</label>
+      <div class="join"><input id="joinCode" inputmode="numeric" autocomplete="off" placeholder="Ej.: 123 456"><button class="go" id="joinBtn">Unirse</button></div>
+      <p class="note" id="codeMsg" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="note">Mezcla preguntas de canciones, Minecraft, Pokémon, Harry Potter y el cole. En canciones, «difícil» son las de antes del 2000.</p>
+</div>
+
+<script>
+{
+// [pregunta, respuesta, [falsas], tema, nivel 1=fácil 2=difícil]
+const Q=[
+["Completa la canción de Celtas Cortos: «Cuéntame un ___»", "cuento", ["secreto", "chiste", "sueño"], "canc", "2"],
+["Completa la canción de Manolo García: «Pájaros de ___»", "barro", ["papel", "cristal", "fuego"], "canc", "2"],
+["Completa la canción de Mecano: «Hijo de la ___»", "Luna", ["noche", "mar", "tierra"], "canc", "2"],
+["Completa la canción de Mecano: «Me cuesta tanto ___»", "olvidarte", ["quererte", "encontrarte", "decírtelo"], "canc", "2"],
+["Completa la canción de Mecano: «Un año ___»", "más", ["nuevo", "menos", "entero"], "canc", "2"],
+["Completa la canción de Mecano: «Cruz de ___»", "navajas", ["madera", "espinas", "hierro"], "canc", "2"],
+["Completa la canción de Hombres G: «Devuélveme a mi ___»", "chica", ["casa", "perro", "bici"], "canc", "2"],
+["Completa la canción de Hombres G: «Marta tiene un ___»", "marcapasos", ["secreto", "novio", "patinete"], "canc", "2"],
+["Completa la canción de Duncan Dhu: «En algún ___»", "lugar", ["momento", "rincón", "sitio"], "canc", "2"],
+["Completa la canción de La Oreja de Van Gogh: «Puedes contar ___»", "conmigo", ["las estrellas", "hasta diez", "mi historia"], "canc", "1"],
+["Completa la canción de Estopa: «Como ___»", "Camarón", ["Lola Flores", "el viento", "un gitano"], "canc", "2"],
+["Completa la canción de Estopa: «La raja de tu ___»", "falda", ["camisa", "puerta", "mochila"], "canc", "2"],
+["Completa la canción de Alejandro Sanz: «Corazón ___»", "partío", ["contento", "de piedra", "loco"], "canc", "2"],
+["Completa la canción de Alejandro Sanz: «Amiga ___»", "mía", ["fiel", "del alma", "querida"], "canc", "2"],
+["Completa la canción de Héroes del Silencio: «Entre dos ___»", "tierras", ["aguas", "mundos", "amores"], "canc", "2"],
+["Completa la canción de Radio Futura: «Escuela de ___»", "calor", ["baile", "rock", "verano"], "canc", "2"],
+["Completa la canción de Nacha Pop: «La chica de ___»", "ayer", ["azul", "mañana", "la radio"], "canc", "2"],
+["Completa la canción de Alaska y Dinarama: «A quién le ___»", "importa", ["gusta", "duele", "toca"], "canc", "2"],
+["Completa la canción de Loquillo y los Trogloditas: «Cadillac ___»", "solitario", ["negro", "rosa", "oxidado"], "canc", "2"],
+["Completa la canción de Fito & Fitipaldis: «Soldadito ___»", "marinero", ["de plomo", "valiente", "perdido"], "canc", "1"],
+["Completa la canción de Melendi: «Caminando por la ___»", "vida", ["calle", "playa", "ciudad"], "canc", "1"],
+["Completa la canción de Melendi: «Tu jardín con ___»", "enanitos", ["flores", "piscina", "columpios"], "canc", "1"],
+["Completa la canción de El Canto del Loco: «La madre de ___»", "José", ["Juan", "Marta", "Pepe"], "canc", "1"],
+["Completa la canción de Pablo Alborán: «Solamente ___»", "tú", ["yo", "una vez", "contigo"], "canc", "1"],
+["Completa la canción de Rosalía y J Balvin: «Con ___»", "altura", ["estilo", "calma", "alegría"], "canc", "1"],
+["Completa la canción de David Bisbal: «Ave ___»", "María", ["Fénix", "Lucía", "Rosa"], "canc", "1"],
+["Completa la canción de Shakira: «Pies descalzos, sueños ___»", "blancos", ["rotos", "dorados", "perdidos"], "canc", "2"],
+["Completa la canción de Shakira: «Estoy ___»", "aquí", ["sola", "lista", "contigo"], "canc", "2"],
+["Completa la canción de Ricky Martin: «Livin' la vida ___»", "loca", ["bella", "buena", "rica"], "canc", "2"],
+["Completa la canción de Enrique Iglesias: «Experiencia ___»", "religiosa", ["única", "mágica", "divertida"], "canc", "2"],
+["Completa la canción de Juanes: «La camisa ___»", "negra", ["blanca", "rota", "nueva"], "canc", "1"],
+["Completa la canción de Amaral: «Sin ti no soy ___»", "nada", ["feliz", "nadie", "yo"], "canc", "1"],
+["Completa la canción de Amaral: «El universo sobre ___»", "mí", ["ti", "nosotros", "la mesa"], "canc", "1"],
+["Completa la canción de Los Rodríguez: «Sin ___»", "documentos", ["dinero", "rumbo", "paraguas"], "canc", "2"],
+["Completa la canción de Ella Baila Sola: «Lo echamos a ___»", "suertes", ["perder", "la calle", "volar"], "canc", "2"],
+["Completa la canción de Seguridad Social: «Quiero tener tu ___»", "presencia", ["sonrisa", "mirada", "número"], "canc", "2"],
+["Completa la canción de C. Tangana: «Tú me dejaste de ___»", "querer", ["llamar", "hablar", "mirar"], "canc", "1"],
+["Completa la canción de Bad Bunny: «Tití me ___»", "preguntó", ["llamó", "miró", "contó"], "canc", "1"],
+["Completa la canción de Mecano: «La fuerza del ___»", "destino", ["amor", "viento", "tiempo"], "canc", "2"],
+["Completa la canción de Mecano: «Me colé en una ___»", "fiesta", ["boda", "piscina", "clase"], "canc", "2"],
+["Completa la canción de Mecano: «Barco a ___»", "Venus", ["Marte", "Mallorca", "la Luna"], "canc", "2"],
+["Completa la canción de Hombres G: «Voy a pasármelo ___»", "bien", ["genial", "bomba", "en grande"], "canc", "2"],
+["Completa la canción de Duncan Dhu: «Cien ___»", "gaviotas", ["palomas", "estrellas", "caballos"], "canc", "2"],
+["Completa la canción de La Unión: «Lobo hombre en ___»", "París", ["Madrid", "la luna", "el bosque"], "canc", "2"],
+["Completa la canción de Radio Futura: «Enamorado de la moda ___»", "juvenil", ["italiana", "de París", "del barrio"], "canc", "2"],
+["Completa la canción de Nacha Pop: «Lucha de ___»", "gigantes", ["titanes", "almohadas", "gallos"], "canc", "2"],
+["Completa la canción de Los Secretos: «Pero a tu ___»", "lado", ["casa", "espalda", "manera"], "canc", "2"],
+["Completa la canción de El Último de la Fila: «Como la cabeza al ___»", "sombrero", ["cuello", "cuerpo", "pelo"], "canc", "2"],
+["Completa la canción de Rosana: «A fuego ___»", "lento", ["vivo", "rápido", "alto"], "canc", "2"],
+["Completa la canción de Ketama: «No estamos ___»", "lokos", ["solos", "cansados", "tristes"], "canc", "2"],
+["Completa la canción de Presuntos Implicados: «Cómo hemos ___»", "cambiado", ["crecido", "bailado", "soñado"], "canc", "2"],
+["Completa la canción de Platero y Tú: «Hay poco ___»", "rock & roll", ["tiempo", "dinero", "sitio"], "canc", "1"],
+["Completa la canción de Jarabe de Palo: «La ___»", "flaca", ["gorda", "rubia", "morena"], "canc", "2"],
+["Completa la canción de Estopa: «Vino ___»", "tinto", ["blanco", "rosado", "dulce"], "canc", "1"],
+["Completa la canción de Estopa: «Tu ___»", "calorro", ["coche", "perro", "novio"], "canc", "2"],
+["Completa la canción de La Oreja de Van Gogh: «Dulce ___»", "locura", ["sonrisa", "mentira", "canción"], "canc", "1"],
+["Completa la canción de La Oreja de Van Gogh: «La niña que llora en tus ___»", "fiestas", ["brazos", "sueños", "fotos"], "canc", "1"],
+["Completa la canción de La Oreja de Van Gogh: «Cuéntame al ___»", "oído", ["revés", "final", "momento"], "canc", "2"],
+["Completa la canción de Alejandro Sanz: «Y si fuera ___»", "ella", ["yo", "verdad", "mañana"], "canc", "2"],
+["Completa la canción de Alejandro Sanz: «Mi soledad y ___»", "yo", ["tú", "la luna", "mi guitarra"], "canc", "2"],
+["Completa la canción de Alejandro Sanz: «Cuando nadie me ___»", "ve", ["oye", "llama", "quiere"], "canc", "1"],
+["Completa la canción de David Bisbal: «Lloraré las ___»", "penas", ["noches", "horas", "lágrimas"], "canc", "1"],
+["Completa la canción de El Canto del Loco: «Una foto en blanco y ___»", "negro", ["rojo", "gris", "azul"], "canc", "1"],
+["Completa la canción de Melendi: «Con la luna ___»", "llena", ["nueva", "de plata", "encima"], "canc", "1"],
+["Completa la canción de Melendi: «Lágrimas ___»", "desordenadas", ["perdidas", "de cocodrilo", "saladas"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «Por la boca vive el ___»", "pez", ["gato", "perro", "pájaro"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «La casa por el ___»", "tejado", ["suelo", "jardín", "balcón"], "canc", "1"],
+["Completa la canción de Amaral: «Días de ___»", "verano", ["fiesta", "colegio", "lluvia"], "canc", "1"],
+["Completa la canción de Pablo Alborán: «Te he echado de ___»", "menos", ["más", "casa", "golpe"], "canc", "1"],
+["Completa la canción de Manu Chao: «Me gustas ___»", "tú", ["mucho", "así", "todavía"], "canc", "1"],
+["Completa la canción de Celtas Cortos: «20 de ___»", "abril", ["mayo", "agosto", "enero"], "canc", "2"],
+["Completa la canción de Celtas Cortos: «La senda del ___»", "tiempo", ["viento", "río", "bosque"], "canc", "2"],
+["Completa la canción de Joaquín Sabina: «19 días y 500 ___»", "noches", ["años", "besos", "canciones"], "canc", "2"],
+["Completa la canción de Camilo: «Vida de ___»", "rico", ["perro", "gato", "rey"], "canc", "1"],
+["Completa la canción de Sebastián Yatra: «Tacones ___»", "rojos", ["altos", "negros", "nuevos"], "canc", "1"],
+["Completa la canción de Morat: «Cómo te ___»", "atreves", ["llamas", "quiero", "olvido"], "canc", "1"],
+["Completa la canción de Carlos Vives y Shakira: «La ___»", "bicicleta", ["moto", "guitarra", "playa"], "canc", "1"],
+["Completa la canción de Juanes: «A Dios le ___»", "pido", ["canto", "rezo", "debo"], "canc", "1"],
+["Completa la canción de Shakira: «Ojos ___»", "así", ["negros", "verdes", "bonitos"], "canc", "2"],
+["Completa la canción de Shakira: «Ciega, ___»", "sordomuda", ["perdida", "enamorada", "dormida"], "canc", "2"],
+["Completa la canción de Maná: «Rayando el ___»", "sol", ["cielo", "mar", "día"], "canc", "2"],
+["Completa la canción de Maná: «Labios ___»", "compartidos", ["rojos", "de miel", "prohibidos"], "canc", "1"],
+["Completa la canción de Ricky Martin: «La copa de la ___»", "vida", ["amistad", "alegría", "victoria"], "canc", "2"],
+["Completa la canción de Gente de Zona y Marc Anthony: «La ___»", "gozadera", ["bachata", "fiesta", "pachanga"], "canc", "1"],
+["Completa la canción de Luis Fonsi y Demi Lovato: «Échame la ___»", "culpa", ["mano", "bronca", "red"], "canc", "1"],
+["Completa la canción de Alaska y Dinarama: «Ni tú ni ___»", "nadie", ["yo", "nada", "ella"], "canc", "2"],
+["Completa la canción de Loquillo y los Trogloditas: «El ritmo del ___»", "garaje", ["corazón", "verano", "barrio"], "canc", "2"],
+["Completa la canción de Héroes del Silencio: «Maldito ___»", "duende", ["fantasma", "pirata", "demonio"], "canc", "2"],
+["Completa la canción de M-Clan: «Llamando a la ___»", "Tierra", ["Luna", "puerta", "policía"], "canc", "1"],
+["Completa la canción de Danza Invisible: «Sabor de ___»", "amor", ["verano", "fresa", "mar"], "canc", "2"],
+["Completa la canción de Antonio Orozco: «Devuélveme la ___»", "vida", ["sonrisa", "pelota", "ilusión"], "canc", "1"],
+["Completa la canción de Andy & Lucas: «Son de ___»", "amores", ["Cuba", "verano", "fiesta"], "canc", "1"],
+["Completa la canción de Mecano: «No es serio este ___»", "cementerio", ["colegio", "partido", "castillo"], "canc", "2"],
+["Completa la canción de Mecano: «Una rosa es una ___»", "rosa", ["flor", "espina", "margarita"], "canc", "2"],
+["Completa la canción de Mecano: «El 7 de ___»", "septiembre", ["julio", "la suerte", "enero"], "canc", "2"],
+["Completa la canción de Mecano: «Mujer contra ___»", "mujer", ["el viento", "reloj", "todos"], "canc", "2"],
+["Completa la canción de Mecano: «Hoy no me puedo ___»", "levantar", ["dormir", "callar", "quedar"], "canc", "2"],
+["Completa la canción de Hombres G: «Visite nuestro ___»", "bar", ["museo", "pueblo", "jardín"], "canc", "2"],
+["Completa la canción de Hombres G: «El ataque de las chicas ___»", "cocodrilo", ["zombi", "pirata", "vampiro"], "canc", "2"],
+["Completa la canción de Duncan Dhu: «Esos ojos ___»", "negros", ["azules", "verdes", "tristes"], "canc", "2"],
+["Completa la canción de Duncan Dhu: «Una calle de ___»", "París", ["Roma", "Madrid", "Londres"], "canc", "2"],
+["Completa la canción de Radio Futura: «Veneno en la ___»", "piel", ["sangre", "boca", "mirada"], "canc", "2"],
+["Completa la canción de Radio Futura: «La negra ___»", "flor", ["noche", "luna", "sombra"], "canc", "2"],
+["Completa la canción de Los Secretos: «Ojos de ___»", "gata", ["tigre", "lince", "cristal"], "canc", "2"],
+["Completa la canción de El Último de la Fila: «Lápiz y ___»", "papel", ["goma", "tinta", "pincel"], "canc", "2"],
+["Completa la canción de El Último de la Fila: «Aviones ___»", "plateados", ["de papel", "dorados", "perdidos"], "canc", "2"],
+["Completa la canción de Gabinete Caligari: «Camino ___»", "Soria", ["Toledo", "Cuenca", "Burgos"], "canc", "2"],
+["Completa la canción de Gabinete Caligari: «Al calor del amor en un ___»", "bar", ["tren", "coche", "barco"], "canc", "2"],
+["Completa la canción de Maná: «Vivir sin ___»", "aire", ["ti", "miedo", "luz"], "canc", "2"],
+["Completa la canción de Maná: «En el muelle de San ___»", "Blas", ["Juan", "Pedro", "Sebastián"], "canc", "2"],
+["Completa la canción de Maná: «Oye mi ___»", "amor", ["niña", "canción", "voz"], "canc", "2"],
+["Completa la canción de Héroes del Silencio: «Héroe de ___»", "leyenda", ["película", "cartón", "guerra"], "canc", "2"],
+["Completa la canción de Héroes del Silencio: «La sirena ___»", "varada", ["dormida", "perdida", "dorada"], "canc", "2"],
+["Completa la canción de Celtas Cortos: «Tranquilo, ___»", "majete", ["chaval", "colega", "amigo"], "canc", "2"],
+["Completa la canción de Alaska y Dinarama: «Cómo pudiste hacerme esto a ___»", "mí", ["ti", "él", "nosotros"], "canc", "2"],
+["Completa la canción de Fangoria: «Retorciendo ___»", "palabras", ["espaguetis", "sueños", "cables"], "canc", "1"],
+["Completa la canción de Miguel Bosé: «Amante ___»", "bandido", ["perdido", "dormido", "valiente"], "canc", "2"],
+["Completa la canción de Miguel Bosé: «Si tú no ___»", "vuelves", ["me quieres", "llamas", "estás"], "canc", "2"],
+["Completa la canción de Camela: «Cuando zarpa el ___»", "amor", ["barco", "tren", "verano"], "canc", "2"],
+["Completa la canción de Chenoa: «Cuando tú ___»", "vas", ["llegas", "bailas", "sonríes"], "canc", "1"],
+["Completa la canción de Bustamante y Bisbal: «Dos hombres y un ___»", "destino", ["perro", "secreto", "caballo"], "canc", "1"],
+["Completa la canción de David Bisbal: «Esclavo de sus ___»", "besos", ["ojos", "manos", "palabras"], "canc", "1"],
+["Completa la canción de David Bisbal: «Mi ___»", "princesa", ["reina", "estrella", "guitarra"], "canc", "1"],
+["Completa la canción de El Canto del Loco: «Ya nada volverá a ser como ___»", "antes", ["siempre", "ayer", "nunca"], "canc", "1"],
+["Completa la canción de Pereza: «Pienso en aquella ___»", "tarde", ["noche", "chica", "canción"], "canc", "1"],
+["Completa la canción de Pereza: «Lady ___»", "Madrid", ["Barcelona", "Gaga", "Sevilla"], "canc", "1"],
+["Completa la canción de Estopa: «Partiendo la ___»", "pana", ["pista", "tarta", "calle"], "canc", "1"],
+["Completa la canción de Estopa: «El del medio de los ___»", "Chichos", ["Beatles", "Rolling", "Chunguitos"], "canc", "1"],
+["Completa la canción de Melendi: «Un violinista en tu ___»", "tejado", ["ventana", "cocina", "balcón"], "canc", "1"],
+["Completa la canción de Melendi: «Barbie de ___»", "extrarradio", ["plástico", "Malibú", "ciudad"], "canc", "1"],
+["Completa la canción de Melendi: «Sin noticias de ___»", "Holanda", ["Francia", "Italia", "nadie"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «Whisky ___»", "barato", ["con hielo", "caro", "escocés"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «Antes de que cuente ___»", "diez", ["tres", "cien", "hasta mil"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «Me equivocaría otra ___»", "vez", ["noche", "semana", "vida"], "canc", "1"],
+["Completa la canción de La Oreja de Van Gogh: «El último ___»", "vals", ["baile", "tango", "beso"], "canc", "1"],
+["Completa la canción de La Oreja de Van Gogh: «Cometas por el ___»", "cielo", ["mar", "parque", "aire"], "canc", "1"],
+["Completa la canción de Amaral: «Toda la noche en la ___»", "calle", ["cama", "playa", "fiesta"], "canc", "1"],
+["Completa la canción de Amaral: «Moriría por ___»", "vos", ["ti", "ella", "nada"], "canc", "1"],
+["Completa la canción de Alejandro Sanz: «No es lo ___»", "mismo", ["normal", "justo", "fácil"], "canc", "1"],
+["Completa la canción de Shakira y Alejandro Sanz: «La ___»", "tortura", ["locura", "cintura", "aventura"], "canc", "1"],
+["Completa la canción de Alejandro Sanz: «Viviendo ___»", "deprisa", ["despacio", "contigo", "sin miedo"], "canc", "2"],
+["Completa la canción de Pablo Alborán: «Por ___»", "fin", ["favor", "ti", "siempre"], "canc", "1"],
+["Completa la canción de Manolo García: «Nunca el tiempo es ___»", "perdido", ["eterno", "oro", "bastante"], "canc", "2"],
+["Completa la canción de Rosalía y The Weeknd: «La ___»", "Fama", ["Luna", "Noche", "Suerte"], "canc", "1"],
+["Completa la canción de Aitana: «Vas a ___»", "quedarte", ["volver", "bailar", "llorar"], "canc", "1"],
+["Completa la canción de Aitana y Ana Guerra: «Lo ___»", "malo", ["bueno", "raro", "mío"], "canc", "1"],
+["Completa la canción de Lola Índigo: «Ya no quiero ___»", "ná", ["más", "a nadie", "volver"], "canc", "1"],
+["Completa la canción de Enrique Iglesias: «Nunca te ___»", "olvidaré", ["dejaré", "perdonaré", "esperaré"], "canc", "2"],
+["Completa la canción de Enrique Iglesias: «Si tú te ___»", "vas", ["quedas", "ríes", "callas"], "canc", "2"],
+["Completa la canción de Juanes: «Es por ___»", "ti", ["mí", "amor", "eso"], "canc", "1"],
+["Completa la canción de Shakira: «Las de la ___»", "intuición", ["oficina", "canción", "esquina"], "canc", "1"],
+["Completa la canción de Carlos Vives: «La gota ___»", "fría", ["de agua", "caliente", "que cae"], "canc", "2"],
+["Completa la canción de Marc Anthony: «Vivir mi ___»", "vida", ["sueño", "fiesta", "historia"], "canc", "1"],
+["Completa la canción de Daddy Yankee: «Lo que pasó, ___»", "pasó", ["quedó", "dolió", "volvió"], "canc", "1"],
+["Completa la canción de Juan Luis Guerra: «La ___»", "bilirrubina", ["bicicleta", "melancolía", "gasolina"], "canc", "2"],
+["Completa la canción de Juan Luis Guerra: «Burbujas de ___»", "amor", ["jabón", "agua", "colores"], "canc", "2"],
+["Completa la canción de Juan Luis Guerra: «Ojalá que llueva ___»", "café", ["chocolate", "dinero", "mañana"], "canc", "2"],
+["Completa la canción de Gloria Estefan: «Mi ___»", "tierra", ["casa", "gente", "vida"], "canc", "2"],
+["Completa la canción de Joaquín Sabina: «Y nos dieron las ___»", "diez", ["doce", "once", "tantas"], "canc", "2"],
+["Completa la canción de Nena Daconte: «Tenía tanto que ___»", "darte", ["decirte", "contarte", "enseñarte"], "canc", "1"],
+["Completa la canción de La Quinta Estación: «El sol no ___»", "regresa", ["calienta", "se esconde", "sale"], "canc", "1"],
+["Completa la canción de Sergio Dalma: «Bailar ___»", "pegados", ["contigo", "descalzos", "despacio"], "canc", "2"],
+["Completa la canción de Ella Baila Sola: «Amores de ___»", "barra", ["verano", "película", "bar"], "canc", "2"],
+["Completa la canción de OBK: «Historias de ___»", "amor", ["miedo", "piratas", "verano"], "canc", "2"],
+["Completa la canción de Efecto Pasillo: «Pan y ___»", "mantequilla", ["chocolate", "tomate", "aceite"], "canc", "1"],
+["Completa la canción de Manuel Carrasco: «Qué bonito es ___»", "querer", ["vivir", "soñar", "bailar"], "canc", "1"],
+["Completa la canción de Morat y Juanes: «Besos en ___»", "guerra", ["la boca", "la playa", "secreto"], "canc", "1"],
+["Completa la canción de Sebastián Yatra y Myke Towers: «Pareja del ___»", "año", ["mes", "barrio", "siglo"], "canc", "1"],
+["Completa la canción de Bad Bunny: «Me porto ___»", "bonito", ["bien", "fatal", "regular"], "canc", "1"],
+["Completa la canción de Extremoduro: «So ___»", "payaso", ["valiente", "tonto", "pirata"], "canc", "2"],
+["Completa la canción de Barricada: «En blanco y ___»", "negro", ["gris", "color", "rojo"], "canc", "2"],
+["Completa la canción de Leño: «Maneras de ___»", "vivir", ["andar", "hablar", "soñar"], "canc", "2"],
+["Completa la canción de Barón Rojo: «Los rockeros van al ___»", "infierno", ["cielo", "colegio", "concierto"], "canc", "2"],
+["Completa la canción de Siniestro Total: «¿Cuándo se come ___»", "aquí?", ["hoy?", "algo?", "en casa?"], "canc", "2"],
+["Completa la canción de Mägo de Oz: «Fiesta ___»", "pagana", ["mayor", "sorpresa", "pirata"], "canc", "1"],
+["Completa la canción de Mägo de Oz: «La danza del ___»", "fuego", ["agua", "viento", "dragón"], "canc", "1"],
+["Completa la canción de Mägo de Oz: «Molinos de ___»", "viento", ["agua", "papel", "harina"], "canc", "2"],
+["Completa la canción de Los Planetas: «Segundo ___»", "premio", ["plato", "intento", "puesto"], "canc", "2"],
+["Completa la canción de Los Piratas: «Promesas que no valen ___»", "nada", ["oro", "la pena", "dinero"], "canc", "2"],
+["Completa la canción de Héroes del Silencio: «Mar ___»", "adentro", ["afuera", "abierto", "en calma"], "canc", "2"],
+["Completa la canción de El Último de la Fila: «Querida ___»", "Milagros", ["Lucía", "Carmen", "Dolores"], "canc", "2"],
+["Completa la canción de Fito & Fitipaldis: «Acabo de ___»", "llegar", ["salir", "despertar", "empezar"], "canc", "1"],
+["Completa la canción de Pereza: «Estrella ___»", "polar", ["fugaz", "de mar", "del norte"], "canc", "1"],
+["Completa la canción de Ilegales: «Tiempos nuevos, tiempos ___»", "salvajes", ["mejores", "difíciles", "modernos"], "canc", "2"],
+["Completa la canción de Los Rodríguez: «Dulce ___»", "condena", ["locura", "mentira", "venganza"], "canc", "2"],
+["Completa la canción de Vetusta Morla: «Los días ___»", "raros", ["grises", "felices", "de lluvia"], "canc", "1"],
+["Completa la canción de Mecano: «Quédate en ___»", "Madrid", ["casa", "Sevilla", "la cama"], "canc", "2"],
+["Completa la canción de Mecano: «Naturaleza ___»", "muerta", ["viva", "salvaje", "dormida"], "canc", "2"],
+["Completa la canción de La Oreja de Van Gogh: «Deseos de cosas ___»", "imposibles", ["bonitas", "pequeñas", "raras"], "canc", "1"],
+["Completa la canción de La Oreja de Van Gogh: «Muñeca de ___»", "trapo", ["porcelana", "papel", "cristal"], "canc", "1"],
+["Completa la canción de Amaral: «Marta, Sebas, Guille y los ___»", "demás", ["otros", "míos", "tuyos"], "canc", "1"],
+["Completa la canción de El Canto del Loco: «Puede ___»", "ser", ["que sí", "volver", "esperar"], "canc", "1"],
+["Completa la canción de Alejandro Sanz: «Quisiera ___»", "ser", ["volar", "saber", "tenerte"], "canc", "1"],
+["Completa la canción de Alejandro Sanz: «Los dos cogidos de la ___»", "mano", ["cintura", "luna", "calle"], "canc", "2"],
+["Completa la canción de Melendi: «Calle la ___»", "pantomima", ["mentira", "alegría", "esperanza"], "canc", "1"],
+["Completa la canción de Estopa: «Cacho a ___»", "cacho", ["poco", "trozo", "paso"], "canc", "2"],
+["Completa la canción de Estopa: «Ya no me ___»", "acuerdo", ["quieres", "llamas", "importa"], "canc", "1"],
+["Completa la canción de Rosana: «Lunas ___»", "rotas", ["llenas", "nuevas", "de plata"], "canc", "2"],
+["Completa la canción de Shakira: «Moscas en la ___»", "casa", ["sopa", "cocina", "ventana"], "canc", "2"],
+["Completa la canción de Juanes: «Volverte a ___»", "ver", ["llamar", "besar", "encontrar"], "canc", "1"],
+["Completa la canción de Maná: «Clavado en un ___»", "bar", ["árbol", "tren", "rincón"], "canc", "2"],
+["Completa la canción de Maná: «Mariposa ___»", "traicionera", ["azul", "bonita", "nocturna"], "canc", "1"],
+["Completa la canción de Rosalía: «Pienso en tu ___»", "mirá", ["boca", "voz", "casa"], "canc", "1"],
+["Completa la canción de Pablo Alborán y Jesse & Joy: «Dónde está el ___»", "amor", ["mar", "tesoro", "verano"], "canc", "1"],
+["Completa la canción de Pablo López: «Lo saben mis ___»", "zapatos", ["amigos", "ojos", "vecinos"], "canc", "1"],
+["Completa la canción de Ella Baila Sola: «Cuando los sapos bailen ___»", "flamenco", ["salsa", "tango", "en la luna"], "canc", "2"],
+["Completa la canción de Duncan Dhu: «Jardín de ___»", "rosas", ["flores", "invierno", "colores"], "canc", "2"],
+["Completa la canción de La Cabra Mecánica: «La lista de la ___»", "compra", ["clase", "fiesta", "semana"], "canc", "1"],
+["Completa la canción de Despistaos: «Física o ___»", "química", ["matemáticas", "magia", "historia"], "canc", "1"],
+["Completa la canción de Mecano: «Perdido en mi ___»", "habitación", ["casa", "ciudad", "colegio"], "canc", "2"],
+["Completa la canción de Mecano: «Busco algo ___»", "barato", ["bonito", "nuevo", "mejor"], "canc", "2"],
+["Completa la canción de Mecano: «La fiesta ___»", "nacional", ["del barrio", "mayor", "de fin de año"], "canc", "2"],
+["Completa la canción de Hombres G: «Dejad que las niñas se acerquen a ___»", "mí", ["ti", "casa", "la playa"], "canc", "2"],
+["Completa la canción de Hombres G: «Chico, tienes que ___»", "cuidarte", ["estudiar", "correr", "peinarte"], "canc", "2"],
+["Completa la canción de Los Secretos: «Sobre un vidrio ___»", "mojado", ["roto", "sucio", "de colores"], "canc", "2"],
+["Completa la canción de Los Secretos: «Agárrate a mí, ___»", "María", ["Lucía", "Carmen", "Rosa"], "canc", "2"],
+["Completa la canción de Radio Futura: «Corazón de ___»", "tiza", ["piedra", "papel", "oro"], "canc", "2"],
+["Completa la canción de Radio Futura: «Semilla ___»", "negra", ["blanca", "de girasol", "dorada"], "canc", "2"],
+["Completa la canción de Gabinete Caligari: «La culpa fue del ___»", "chachachá", ["tango", "bolero", "vals"], "canc", "2"],
+["Completa la canción de Alaska y Dinarama: «Mi novio es un ___»", "zombi", ["vampiro", "pirata", "fantasma"], "canc", "2"],
+["Completa la canción de Miguel Bosé: «Morena ___»", "mía", ["bonita", "del alma", "linda"], "canc", "1"],
+["Completa la canción de Amaral: «Salir ___»", "corriendo", ["volando", "de noche", "a la calle"], "canc", "1"],
+["Completa la canción de Melendi: «Kisiera yo ___»", "saber", ["volar", "tener", "ser"], "canc", "1"],
+["Completa la canción de Melendi: «Tocado y ___»", "hundido", ["perdido", "herido", "vencido"], "canc", "1"],
+["Completa la canción de Estopa: «Me falta el ___»", "aliento", ["dinero", "tiempo", "valor"], "canc", "1"],
+["Completa la canción de Fito & Fitipaldis: «Siempre estoy ___»", "soñando", ["cantando", "esperando", "pensando"], "canc", "1"],
+["Completa la canción de David Bisbal: «Quién me iba a ___»", "decir", ["llamar", "querer", "contar"], "canc", "1"],
+["Completa la canción de Sergio Dalma: «Esa chica es ___»", "mía", ["tuya", "guapa", "especial"], "canc", "2"],
+["Completa la canción de Joaquín Sabina: «Calle ___»", "Melancolía", ["Alegría", "Mayor", "Esperanza"], "canc", "2"],
+["Completa la canción de Lola Índigo y Mala Rodríguez: «Mujer ___»", "bruja", ["guerrera", "valiente", "fuerte"], "canc", "1"],
+["Completa la canción de Shakira: «Te dejo ___»", "Madrid", ["Sevilla", "Barcelona", "París"], "canc", "1"],
+["Completa la canción de Shakira: «¿Dónde están los ___»", "ladrones?", ["amigos?", "juguetes?", "niños?"], "canc", "2"],
+["Completa la canción de Juanes: «Me ___»", "enamora", ["emociona", "encanta", "alegra"], "canc", "1"],
+["Completa la canción de Maná: «El reloj ___»", "cucú", ["de arena", "de oro", "despertador"], "canc", "2"],
+["Completa la canción de Maná y Santana: «Corazón ___»", "espinado", ["partío", "de melón", "valiente"], "canc", "2"],
+["Completa la canción de Enrique Iglesias y Juan Luis Guerra: «Cuando me ___»", "enamoro", ["despierto", "emociono", "acuerdo"], "canc", "1"],
+["Completa la canción de Carlos Vives: «Fruta ___»", "fresca", ["madura", "del tiempo", "tropical"], "canc", "2"],
+["Completa la canción de Juan Luis Guerra: «Bachata ___»", "rosa", ["azul", "de oro", "alegre"], "canc", "2"],
+["Completa la canción de Daddy Yankee: «Con ___»", "calma", ["prisa", "cuidado", "ganas"], "canc", "1"],
+["Completa la canción de Luis Fonsi: «No me doy por ___»", "vencido", ["perdido", "contento", "rendido"], "canc", "1"],
+["Completa la canción de Morat y Álvaro Soler: «Yo contigo, tú ___»", "conmigo", ["con él", "con ella", "sin mí"], "canc", "1"],
+["Completa la canción de Álvaro Soler: «El mismo ___»", "sol", ["cielo", "mar", "día"], "canc", "1"],
+["Completa la canción de Carlos Vives y Sebastián Yatra: «Robarte un ___»", "beso", ["abrazo", "corazón", "minuto"], "canc", "1"],
+["¿Qué mob explota cuando se acerca a ti?", "Creeper", ["Zombi", "Esqueleto", "Araña"], "mc", "1"],
+["¿Qué te da una oveja al esquilarla?", "Lana", ["Cuero", "Plumas", "Hilo"], "mc", "1"],
+["¿Qué mob se enfada si le miras a los ojos?", "Enderman", ["Creeper", "Bruja", "Aldeano"], "mc", "1"],
+["¿Qué arma usan los esqueletos?", "Arco", ["Espada", "Tridente", "Hacha"], "mc", "1"],
+["¿Qué suelta un esqueleto al morir?", "Huesos y flechas", ["Carne podrida", "Hilo", "Pólvora"], "mc", "1"],
+["¿Qué suelta normalmente un zombi?", "Carne podrida", ["Huesos", "Pólvora", "Cuero"], "mc", "1"],
+["¿Con qué se domestica un lobo?", "Huesos", ["Pescado", "Trigo", "Zanahorias"], "mc", "1"],
+["¿Qué le das a un gato callejero para domesticarlo?", "Pescado crudo", ["Huesos", "Leche", "Semillas"], "mc", "1"],
+["¿Qué animal te da leche si usas un cubo con él?", "Vaca", ["Cerdo", "Oveja", "Gallina"], "mc", "1"],
+["¿Qué le pasa a un creeper si le cae un rayo cerca?", "Se vuelve un creeper cargado", ["Se muere", "Se convierte en cerdo", "Desaparece"], "mc", "2"],
+["¿En qué se convierte un cerdo si le cae un rayo?", "Piglin zombificado", ["Creeper", "Hoglin", "Aldeano"], "mc", "2"],
+["¿Cómo se llama el jefe final que vive en el End?", "Dragón del End", ["Wither", "Warden", "Guardián anciano"], "mc", "1"],
+["¿Qué jefe se invoca con calaveras de esqueleto wither y arena de almas?", "El Wither", ["Dragón del End", "Warden", "Evocador"], "mc", "2"],
+["¿Qué mob ciego vive en la Oscuridad Profunda?", "Warden", ["Enderman", "Vex", "Phantom"], "mc", "2"],
+["¿Qué mob volador aparece si llevas varias noches sin dormir?", "Phantom", ["Murciélago", "Ghast", "Vex"], "mc", "2"],
+["¿Qué mob flota en el Nether y lanza bolas de fuego?", "Ghast", ["Phantom", "Strider", "Murciélago"], "mc", "1"],
+["¿Qué suelta un blaze al morir?", "Vara de blaze", ["Pólvora", "Polvo de redstone", "Huesos"], "mc", "2"],
+["¿Qué mob del Nether te cambia cosas si le das lingotes de oro?", "Piglin", ["Hoglin", "Ghast", "Blaze"], "mc", "2"],
+["¿Qué mob puede caminar sobre la lava?", "Strider", ["Ghast", "Piglin", "Hoglin"], "mc", "2"],
+["¿Qué comida hace que un cerdo te siga?", "Zanahoria", ["Trigo", "Manzana", "Pan"], "mc", "1"],
+["¿Qué necesitas para montar y dirigir un cerdo?", "Silla de montar y caña con zanahoria", ["Silla de montar y una cuerda", "Solo una silla de montar", "Una correa"], "mc", "2"],
+["¿Qué mob se divide en otros más pequeños al morir?", "Slime", ["Zombi", "Araña", "Creeper"], "mc", "1"],
+["¿Qué usan los aldeanos como moneda para comerciar?", "Esmeraldas", ["Diamantes", "Oro", "Monedas"], "mc", "1"],
+["¿Qué le pasa a un aldeano si le cae un rayo?", "Se convierte en bruja", ["Se vuelve zombi", "Se cura", "Explota"], "mc", "2"],
+["¿De qué animal huyen los creepers?", "Del gato", ["Del lobo", "De la gallina", "Del caballo"], "mc", "2"],
+["¿Qué mob protege los monumentos oceánicos?", "Guardián", ["Ahogado", "Calamar", "Delfín"], "mc", "2"],
+["¿Cómo se llama el zombi que vive bajo el agua?", "Ahogado", ["Aldeano zombi", "Piglin zombificado", "Zoglin"], "mc", "2"],
+["¿Qué te da un calamar?", "Saco de tinta", ["Pescado", "Algas", "Perla"], "mc", "1"],
+["¿Qué mob suelta perlas de ender?", "Enderman", ["Creeper", "Slime", "Bruja"], "mc", "1"],
+["¿Qué mob suelta el tótem de la inmortalidad?", "Evocador", ["Vindicador", "Saqueador", "Bruja"], "mc", "2"],
+["¿Qué cubo usas para llevarte un ajolote?", "Cubo de agua", ["Cubo de lava", "Cubo de leche", "Cubo vacío"], "mc", "2"],
+["¿Qué mob azul recoge objetos y te los trae?", "Allay", ["Loro", "Zorro", "Vex"], "mc", "2"],
+["¿Qué animal hace miel?", "Abeja", ["Oso polar", "Zorro", "Panda"], "mc", "1"],
+["¿Qué come el panda?", "Bambú", ["Bayas", "Hojas", "Caña de azúcar"], "mc", "1"],
+["¿Qué mob grande protege las aldeas?", "Gólem de hierro", ["Gólem de nieve", "Warden", "Vindicador"], "mc", "1"],
+["¿Cómo se fabrica un gólem de nieve?", "Dos bloques de nieve y una calabaza", ["Tres bloques de hielo", "Nieve y un melón", "Lana blanca y una calabaza"], "mc", "2"],
+["¿Cómo se fabrica un gólem de hierro?", "Cuatro bloques de hierro y una calabaza", ["Cuatro lingotes y una calabaza", "Bloques de piedra y una calabaza", "Un yunque y una calabaza"], "mc", "2"],
+["¿Con qué se cura a un aldeano zombi?", "Poción de debilidad y manzana de oro", ["Un cubo de leche", "Poción de curación", "Pan y agua"], "mc", "2"],
+["¿Qué mob te lanza pociones?", "Bruja", ["Evocador", "Aldeano", "Esqueleto"], "mc", "1"],
+["¿Qué pico necesitas como mínimo para picar diamante?", "Pico de hierro", ["Pico de piedra", "Pico de madera", "Pico de oro"], "mc", "1"],
+["¿Qué pico necesitas para picar obsidiana?", "Pico de diamante", ["Pico de hierro", "Pico de piedra", "Pico de oro"], "mc", "1"],
+["¿Cómo se forma la obsidiana?", "Agua sobre una fuente de lava", ["Lava sobre arena", "Agua sobre piedra", "Hielo derretido"], "mc", "1"],
+["¿Cuál es la mejor armadura del juego?", "Netherita", ["Diamante", "Hierro", "Oro"], "mc", "1"],
+["¿Dónde se encuentran los escombros ancestrales?", "En el Nether", ["En el End", "Bajo el mar", "En las aldeas"], "mc", "2"],
+["¿Qué bloque explota si lo enciendes?", "Dinamita (TNT)", ["Piedra luminosa", "Calabaza", "Bloque de redstone"], "mc", "1"],
+["¿Qué sale al fundir arena en un horno?", "Cristal", ["Arenisca", "Piedra", "Ladrillo"], "mc", "1"],
+["¿Qué sale al fundir piedra labrada en un horno?", "Piedra", ["Grava", "Ladrillo", "Andesita"], "mc", "2"],
+["¿Qué sale al cocer una bola de arcilla en el horno?", "Ladrillo", ["Cristal", "Terracota", "Piedra"], "mc", "2"],
+["¿Qué cae a veces al picar grava?", "Pedernal", ["Carbón", "Hierro", "Hueso"], "mc", "1"],
+["¿Qué mineral sirve para hacer circuitos?", "Redstone", ["Lapislázuli", "Cuarzo", "Esmeralda"], "mc", "1"],
+["¿Qué mineral necesitas en la mesa de encantamientos?", "Lapislázuli", ["Redstone", "Esmeralda", "Amatista"], "mc", "2"],
+["¿Qué bloque da luz y se encuentra en el techo del Nether?", "Piedra luminosa", ["Linterna", "Antorcha", "Calabaza"], "mc", "1"],
+["¿Qué bloque te hace rebotar al saltar encima?", "Bloque de slime", ["Bloque de miel", "Lana", "Esponja"], "mc", "1"],
+["¿Qué bloque absorbe el agua?", "Esponja", ["Lana", "Arena", "Bloque de miel"], "mc", "1"],
+["¿Sobre qué bloque resbalas mucho?", "Hielo", ["Arena", "Bloque de miel", "Lana"], "mc", "1"],
+["¿Qué planta crece junto al agua y sirve para hacer azúcar?", "Caña de azúcar", ["Bambú", "Cactus", "Trigo"], "mc", "1"],
+["¿Qué planta te hace daño si la tocas?", "Cactus", ["Caña de azúcar", "Bambú", "Helecho"], "mc", "1"],
+["¿Dónde hay más diamantes?", "Muy abajo, cerca del fondo del mundo", ["Al nivel del mar", "En lo alto de las montañas", "Justo debajo de la hierba"], "mc", "2"],
+["¿Qué bloque no se puede romper en modo supervivencia?", "Piedra base (bedrock)", ["Obsidiana", "Bloque de netherita", "Bloque de diamante"], "mc", "1"],
+["¿Qué necesitas para fabricar un catalejo?", "Cobre y amatista", ["Hierro y cristal", "Oro y cuarzo", "Cristal y palos"], "mc", "2"],
+["¿De qué color se vuelve el cobre con el tiempo?", "Verde", ["Negro", "Rojo", "Blanco"], "mc", "1"],
+["¿Cómo evitas que el cobre se oxide?", "Encerándolo con un panal", ["Pintándolo", "Mojándolo", "Echándole lava"], "mc", "2"],
+["¿Cuántos tablones salen de un tronco?", "4", ["2", "1", "8"], "mc", "1"],
+["¿Qué necesitas para hacer antorchas?", "Palo y carbón", ["Palo y hierro", "Palo y pólvora", "Madera y cuerda"], "mc", "1"],
+["¿Cuántos bloques de obsidiana hacen falta como mínimo para un portal al Nether?", "10", ["14", "8", "12"], "mc", "2"],
+["¿Con qué enciendes un portal al Nether?", "Mechero (pedernal y acero)", ["Una antorcha", "Redstone", "Una perla de ender"], "mc", "1"],
+["¿Qué necesitas para hacer una cama?", "Lana y tablones", ["Cuero y madera", "Plumas y madera", "Hilo y palos"], "mc", "1"],
+["¿Qué pasa si intentas dormir en el Nether?", "La cama explota", ["Pasa la noche", "Te curas", "No pasa nada"], "mc", "2"],
+["¿Para qué sirve dormir en una cama?", "Saltar la noche y guardar dónde reapareces", ["Quitar el hambre", "Ganar experiencia", "Curar el veneno"], "mc", "1"],
+["¿Qué necesitas para hacer un libro?", "Papel y cuero", ["Papel y lana", "Madera y cuero", "Papel y una pluma"], "mc", "2"],
+["¿De qué se hace el papel?", "Caña de azúcar", ["Madera", "Bambú", "Trigo"], "mc", "1"],
+["¿Qué necesitas para hacer pan?", "Tres de trigo", ["Trigo y huevo", "Trigo y leche", "Patatas"], "mc", "1"],
+["¿Qué lleva la tarta?", "Leche, azúcar, huevo y trigo", ["Solo trigo y leche", "Azúcar y huevos", "Manzanas y trigo"], "mc", "2"],
+["¿Qué te da una manzana de oro además de comida?", "Absorción y regeneración", ["Velocidad", "Poder volar", "Invisibilidad"], "mc", "2"],
+["¿Qué objeto te salva de morir una vez?", "Tótem de la inmortalidad", ["Manzana de oro", "Escudo", "Élitros"], "mc", "1"],
+["¿Qué objeto te deja planear por el aire?", "Élitros", ["Tridente", "Perla de ender", "Plumas"], "mc", "1"],
+["¿Dónde se encuentran los élitros?", "En los barcos de las ciudades del End", ["En el Nether", "En los templos del desierto", "En las aldeas"], "mc", "2"],
+["¿Qué pasa al lanzar una perla de ender?", "Te teletransportas donde cae", ["Explota", "Aparece un enderman", "Te vuelves invisible"], "mc", "1"],
+["¿Qué arma vuelve a tu mano si tiene el encantamiento Lealtad?", "Tridente", ["Espada", "Hacha", "Arco"], "mc", "2"],
+["¿Qué herramienta usas para esquilar ovejas?", "Tijeras", ["Hacha", "Espada", "Azada"], "mc", "1"],
+["¿Qué herramienta prepara la tierra para sembrar?", "Azada", ["Pala", "Pico", "Hacha"], "mc", "1"],
+["¿Qué objeto apunta al punto de aparición del mundo?", "Brújula", ["Mapa", "Reloj", "Catalejo"], "mc", "1"],
+["¿Qué bloque usas para hacer pociones?", "Soporte para pociones", ["Caldero", "Mesa de trabajo", "Horno"], "mc", "2"],
+["¿Qué ingrediente es la base de casi todas las pociones?", "Verruga del Nether", ["Azúcar", "Redstone", "Pólvora"], "mc", "2"],
+["¿Qué añades a una poción para poder lanzarla?", "Pólvora", ["Redstone", "Polvo de piedra luminosa", "Azúcar"], "mc", "2"],
+["¿Qué quita todos los efectos de pociones?", "Un cubo de leche", ["Un cubo de agua", "Pan", "Una manzana"], "mc", "1"],
+["¿Qué comida te envenena siempre?", "Pez globo", ["Salmón", "Bacalao", "Zanahoria"], "mc", "2"],
+["¿Dónde guardas tus objetos?", "En un cofre", ["En un horno", "En la mesa de trabajo", "En un yunque"], "mc", "1"],
+["¿Para qué sirve el yunque?", "Reparar y cambiar el nombre a objetos", ["Cocinar", "Encantar", "Hacer pociones"], "mc", "1"],
+["¿Cuántas dimensiones tiene Minecraft?", "Tres", ["Dos", "Cuatro", "Cinco"], "mc", "1"],
+["¿Cómo se llega al End?", "Por un portal de una fortaleza, con ojos de ender", ["Con un portal de obsidiana", "Cavando en la piedra base", "Durmiendo en el Nether"], "mc", "1"],
+["¿Cuántos ojos de ender necesita el portal del End?", "12", ["8", "10", "16"], "mc", "2"],
+["¿Cómo se fabrica un ojo de ender?", "Perla de ender y polvo de blaze", ["Perla de ender y redstone", "Perla de ender y diamante", "Perla de ender y piedra luminosa"], "mc", "2"],
+["¿Qué pasa si echas agua en el Nether?", "Se evapora", ["Se congela", "Se vuelve lava", "Funciona normal"], "mc", "1"],
+["Si andas 1 bloque en el Nether, ¿cuántos bloques avanzas en el mundo normal?", "8", ["2", "4", "16"], "mc", "2"],
+["¿En qué bioma hay setas gigantes y vacas rojas con setas?", "Campo de champiñones", ["Pantano", "Jungla", "Taiga"], "mc", "2"],
+["¿En qué bioma hay templos con una trampa de dinamita?", "Desierto", ["Jungla", "Tundra nevada", "Océano"], "mc", "2"],
+["¿Cuánto dura un día completo en Minecraft?", "20 minutos", ["10 minutos", "1 hora", "24 minutos"], "mc", "2"],
+["¿En qué modo puedes volar y tienes bloques infinitos?", "Creativo", ["Supervivencia", "Aventura", "Extremo"], "mc", "1"],
+["¿Qué pasa en modo extremo si mueres?", "No puedes volver a jugar en ese mundo", ["Reapareces en la cama", "Pierdes solo los objetos", "Vuelves con media vida"], "mc", "2"],
+["¿Quién creó Minecraft?", "Notch (Markus Persson)", ["Steve", "Herobrine", "Alex"], "mc", "2"],
+["¿Cómo se llaman los personajes clásicos del jugador?", "Steve y Alex", ["Steve y Notch", "Alex y Herobrine", "Juan y Ana"], "mc", "1"],
+["¿Qué estructura bajo tierra tiene vías de vagoneta abandonadas?", "Mina abandonada", ["Fortaleza", "Ciudad antigua", "Mazmorra"], "mc", "1"],
+["¿Qué bloque de sculk llama al Warden si haces ruido?", "Chillador de sculk", ["Sensor de sculk", "Catalizador de sculk", "Vena de sculk"], "mc", "2"],
+["¿En qué dimensión están las fortalezas con blazes?", "En el Nether", ["En el End", "En el mundo normal", "Bajo el océano"], "mc", "1"],
+["¿Qué estructura del mundo normal tiene el portal al End?", "Fortaleza", ["Mansión del bosque", "Pirámide del desierto", "Aldea"], "mc", "1"],
+["¿Qué animal suelta plumas al morir?", "Gallina", ["Loro", "Murciélago", "Phantom"], "mc", "1"],
+["¿Qué te da una vaca al morir?", "Cuero y carne", ["Lana", "Plumas", "Huesos"], "mc", "1"],
+["¿Cómo se doma un caballo?", "Montándolo varias veces", ["Dándole huesos", "Dándole pescado", "Poniéndole una correa"], "mc", "2"],
+["¿Qué suelta una araña al morir?", "Hilo y ojos de araña", ["Lana", "Huesos", "Pólvora"], "mc", "1"],
+["¿Qué les pasa a los zombis y esqueletos al sol?", "Se queman", ["Se curan", "Corren más", "Se hacen invisibles"], "mc", "1"],
+["¿Qué mob coge bloques y los cambia de sitio?", "Enderman", ["Zorro", "Aldeano", "Creeper"], "mc", "1"],
+["¿Qué mobs atacan la aldea en una incursión?", "Saqueadores", ["Esqueletos", "Arañas", "Slimes"], "mc", "2"],
+["¿Qué mob de las Ciudades del End te hace levitar?", "Shulker", ["Phantom", "Vex", "Ghast"], "mc", "2"],
+["¿Para qué sirve el caparazón de shulker?", "Para hacer cajas de shulker", ["Para hacer élitros", "Para hacer armaduras", "Para hacer pociones"], "mc", "2"],
+["¿Qué zombi del agua puede lanzarte tridentes?", "Ahogado", ["Guardián", "Esqueleto", "Piglin"], "mc", "2"],
+["¿Qué animal con caparazón pone huevos en la playa?", "Tortuga", ["Armadillo", "Ajolote", "Rana"], "mc", "1"],
+["¿Para qué sirven las escamas de armadillo?", "Para hacer armadura para lobos", ["Para hacer escudos", "Para hacer flechas", "Para hacer camas"], "mc", "2"],
+["¿Qué mob de las cámaras de prueba lanza ráfagas de viento?", "Breeze", ["Blaze", "Ghast", "Vex"], "mc", "2"],
+["¿Qué arma se fabrica con el núcleo pesado?", "La maza", ["El tridente", "La ballesta", "El hacha"], "mc", "2"],
+["¿Qué pones para que no salgan monstruos cerca de tu casa?", "Antorchas", ["Flores", "Cofres", "Vallas"], "mc", "1"],
+["¿Qué te da un mineral de diamante si lo picas con la mano?", "Nada", ["El diamante", "Carbón", "Piedra"], "mc", "1"],
+["¿Qué bloque se cae si no tiene nada debajo?", "Arena", ["Tierra", "Piedra", "Madera"], "mc", "1"],
+["¿Qué sale al fundir hierro en bruto en el horno?", "Lingote de hierro", ["Pepita de hierro", "Bloque de hierro", "Mineral de hierro"], "mc", "1"],
+["¿Qué mineral morado crece dentro de las geodas?", "Amatista", ["Cuarzo", "Lapislázuli", "Redstone"], "mc", "1"],
+["¿Qué necesitas para fabricar un faro?", "Estrella del Nether, cristal y obsidiana", ["Diamante, cristal y piedra", "Perla de ender y oro", "Vara de blaze y hierro"], "mc", "2"],
+["¿Qué mob suelta la estrella del Nether?", "El Wither", ["Dragón del End", "Blaze", "Ghast"], "mc", "2"],
+["¿De qué color es la redstone?", "Roja", ["Azul", "Verde", "Morada"], "mc", "1"],
+["¿Qué bloque pasa objetos de un cofre a otro?", "Tolva", ["Dispensador", "Barril", "Horno"], "mc", "2"],
+["¿Qué bloque empuja otros bloques con redstone?", "Pistón", ["Tolva", "Palanca", "Observador"], "mc", "2"],
+["¿Qué bloque te deja reaparecer en el Nether?", "Nexo de reaparición", ["Cama", "Faro", "Atril"], "mc", "2"],
+["¿Con qué se carga el nexo de reaparición?", "Piedra luminosa", ["Redstone", "Carbón", "Lava"], "mc", "2"],
+["¿Cuántas bolas de nieve hacen un bloque de nieve?", "4", ["2", "6", "9"], "mc", "2"],
+["¿Cuántos lingotes de hierro necesitas para un cubo?", "3", ["1", "2", "5"], "mc", "1"],
+["¿Cuántos lingotes de hierro hacen falta para una armadura completa?", "24", ["16", "20", "32"], "mc", "2"],
+["¿Qué necesitas para hacer una mesa de trabajo?", "4 tablones", ["4 troncos", "2 tablones y 2 palos", "8 piedras"], "mc", "1"],
+["¿Cuánta piedra labrada necesitas para un horno?", "8", ["4", "6", "9"], "mc", "1"],
+["¿Qué necesitas para la mesa de encantamientos?", "Un libro, diamantes y obsidiana", ["Un libro, oro y piedra", "Diamantes y hierro", "Esmeraldas y madera"], "mc", "2"],
+["¿Qué necesitas para hacer un arco?", "Palos e hilo", ["Palos y lana", "Hierro e hilo", "Madera y plumas"], "mc", "1"],
+["¿Qué necesitas para hacer flechas?", "Pedernal, palo y pluma", ["Hierro, palo y pluma", "Piedra y palo", "Hueso y palo"], "mc", "2"],
+["¿Dónde se mejora el diamante a netherita?", "En la mesa de herrería", ["En el yunque", "En el horno", "En la mesa de encantamientos"], "mc", "2"],
+["¿Qué pasa si pones un cubo de lava en el horno?", "Sirve de combustible y dura mucho", ["Se vacía sin más", "Explota", "Hace obsidiana"], "mc", "2"],
+["¿Cómo se hace una manzana de oro?", "Una manzana y 8 lingotes de oro", ["Una manzana y 8 pepitas de oro", "Una manzana y un diamante", "Una manzana en el horno"], "mc", "2"],
+["¿Qué hace el encantamiento Toque de seda?", "Recoge el bloque tal cual, sin romperlo", ["Pica más rápido", "Da más minerales", "La herramienta no se rompe"], "mc", "2"],
+["¿Qué hace el encantamiento Fortuna en un pico?", "Te da más minerales", ["Pica más rápido", "Te da suerte pescando", "Hace más daño"], "mc", "2"],
+["¿Qué hace el encantamiento Irrompibilidad?", "La herramienta dura más", ["Pica más rápido", "Da más minerales", "Hace más daño"], "mc", "2"],
+["¿Qué poción te deja respirar bajo el agua?", "Respiración acuática", ["Velocidad", "Fuerza", "Salto"], "mc", "1"],
+["¿Qué te pones en la cabeza para que los enderman no se enfaden?", "Una calabaza tallada", ["Un casco de oro", "Una flor", "Un cubo"], "mc", "2"],
+["¿En qué bioma viven los osos polares?", "En la llanura nevada", ["En el desierto", "En la jungla", "En la sabana"], "mc", "1"],
+["¿En qué bioma viven los pandas?", "En la jungla", ["En el desierto", "En la taiga", "En el pantano"], "mc", "1"],
+["¿En qué bioma aparecen los camellos?", "En el desierto", ["En la jungla", "En el pantano", "En la taiga"], "mc", "1"],
+["¿Qué bioma tiene árboles con flores rosas?", "Arboleda de cerezos", ["Bosque de abedules", "Manglar", "Jungla"], "mc", "2"],
+["¿Hasta qué altura se puede construir en el mundo normal?", "Y 320", ["Y 256", "Y 128", "Y 500"], "mc", "2"],
+["¿Dónde aparecen los Breeze?", "En las cámaras de prueba", ["En la Ciudad antigua", "En la fortaleza", "En la mansión"], "mc", "2"],
+["¿Qué mobs malos viven en las mansiones del bosque?", "Vindicadores y evocadores", ["Brujas", "Piglins", "Blazes"], "mc", "2"],
+["¿Qué puedes encontrar en un barco naufragado?", "Mapas del tesoro", ["Élitros", "Huevos de dragón", "Aldeanos"], "mc", "2"],
+["¿Adónde te lleva un mapa del tesoro?", "A un cofre enterrado", ["A una aldea", "A una fortaleza", "Al End"], "mc", "1"],
+["¿Qué es la «semilla» de un mundo?", "Un número que decide cómo se crea el mundo", ["Una planta especial", "El primer bloque que pones", "Tu contraseña"], "mc", "2"],
+["¿Qué dimensión está llena de lava y no tiene día ni noche?", "El Nether", ["El End", "El mundo normal", "Ninguna"], "mc", "1"],
+["¿Qué aparece al derrotar al Dragón del End?", "Un portal de salida y un huevo de dragón", ["Un tesoro de diamantes", "Un Wither", "Una aldea"], "mc", "2"],
+["¿En qué año salió la versión completa de Minecraft?", "2011", ["2005", "2009", "2014"], "mc", "2"],
+["¿Qué empresa compró Minecraft?", "Microsoft", ["Sony", "Nintendo", "Google"], "mc", "2"],
+["¿De qué tipo es Pikachu?", "Eléctrico", ["Fuego", "Normal", "Hada"], "pk", "1"],
+["¿En qué evoluciona Pikachu?", "Raichu", ["Pichu", "Plusle", "Jolteon"], "pk", "1"],
+["¿Cuál es la preevolución de Pikachu?", "Pichu", ["Raichu", "Pachirisu", "Emolga"], "pk", "1"],
+["¿Qué piedra hace evolucionar a Pikachu?", "Piedra trueno", ["Piedra fuego", "Piedra lunar", "Piedra hoja"], "pk", "2"],
+["¿En qué evoluciona Charmander?", "Charmeleon", ["Charizard", "Vulpix", "Growlithe"], "pk", "1"],
+["¿De qué tipos es Charizard?", "Fuego y Volador", ["Fuego y Dragón", "Solo Fuego", "Dragón y Volador"], "pk", "2"],
+["¿Cuál es la última evolución de Squirtle?", "Blastoise", ["Wartortle", "Gyarados", "Lapras"], "pk", "1"],
+["¿Cuál es la última evolución de Bulbasaur?", "Venusaur", ["Ivysaur", "Victreebel", "Meganium"], "pk", "1"],
+["¿Qué Pokémon es el número 1 de la Pokédex?", "Bulbasaur", ["Pikachu", "Mew", "Charmander"], "pk", "1"],
+["¿Qué Pokémon es el número 25 de la Pokédex?", "Pikachu", ["Eevee", "Jigglypuff", "Meowth"], "pk", "2"],
+["¿Cuántas evoluciones distintas tiene Eevee?", "8", ["3", "5", "10"], "pk", "2"],
+["¿Qué evolución de Eevee es de tipo Agua?", "Vaporeon", ["Jolteon", "Flareon", "Glaceon"], "pk", "1"],
+["¿Qué evolución de Eevee es de tipo Hada?", "Sylveon", ["Espeon", "Leafeon", "Umbreon"], "pk", "2"],
+["¿En qué evoluciona Magikarp?", "Gyarados", ["Goldeen", "Milotic", "Seaking"], "pk", "1"],
+["¿Qué Pokémon enorme duerme casi todo el día y tapa caminos?", "Snorlax", ["Slowpoke", "Wailord", "Jigglypuff"], "pk", "1"],
+["¿Qué Pokémon duerme a los demás cantando?", "Jigglypuff", ["Chansey", "Clefairy", "Psyduck"], "pk", "1"],
+["¿Qué Pokémon puede transformarse en cualquier otro?", "Ditto", ["Mew", "Zorua", "Smeargle"], "pk", "1"],
+["¿Qué Pokémon legendario se creó a partir de Mew?", "Mewtwo", ["Celebi", "Deoxys", "Genesect"], "pk", "1"],
+["¿Qué Pokémon se esconde bajo un disfraz de Pikachu?", "Mimikyu", ["Zorua", "Ditto", "Pachirisu"], "pk", "2"],
+["¿Qué Pokémon evoluciona en Gengar?", "Haunter", ["Gastly", "Misdreavus", "Duskull"], "pk", "2"],
+["¿Cómo evoluciona Haunter a Gengar en los juegos?", "Intercambiándolo", ["Con una piedra noche", "Subiendo de nivel", "Con mucha amistad"], "pk", "2"],
+["¿Qué legendario es el pájaro de hielo?", "Articuno", ["Zapdos", "Moltres", "Lugia"], "pk", "1"],
+["¿Qué legendario es el pájaro de fuego?", "Moltres", ["Articuno", "Zapdos", "Lugia"], "pk", "1"],
+["¿Qué legendario es el pájaro eléctrico?", "Zapdos", ["Articuno", "Moltres", "Ho-Oh"], "pk", "1"],
+["¿Qué Pokémon creó el universo según la historia de Sinnoh?", "Arceus", ["Dialga", "Palkia", "Giratina"], "pk", "2"],
+["¿Qué legendario controla el tiempo?", "Dialga", ["Palkia", "Giratina", "Darkrai"], "pk", "2"],
+["¿Qué legendario controla el espacio?", "Palkia", ["Dialga", "Giratina", "Rayquaza"], "pk", "2"],
+["¿Qué dragón verde vive en el cielo y calma a Groudon y Kyogre?", "Rayquaza", ["Lugia", "Zygarde", "Latios"], "pk", "2"],
+["¿Qué legendario creó los mares?", "Kyogre", ["Groudon", "Lugia", "Suicune"], "pk", "2"],
+["¿Qué pato amarillo siempre tiene dolor de cabeza?", "Psyduck", ["Farfetch'd", "Ducklett", "Golduck"], "pk", "1"],
+["¿Qué Pokémon lleva siempre un puerro?", "Farfetch'd", ["Psyduck", "Ducklett", "Pidgey"], "pk", "2"],
+["¿Qué Pokémon es una roca con brazos?", "Geodude", ["Onix", "Roggenrola", "Sudowoodo"], "pk", "1"],
+["¿Qué Pokémon es una serpiente gigante hecha de rocas?", "Onix", ["Ekans", "Steelix", "Seviper"], "pk", "1"],
+["¿En qué evoluciona Onix?", "Steelix", ["Golem", "Rhydon", "Tyranitar"], "pk", "2"],
+["¿Qué Pokémon era el número 151 en la primera generación?", "Mew", ["Mewtwo", "Dragonite", "Celebi"], "pk", "2"],
+["¿Qué tipo es fuerte contra el tipo Fuego?", "Agua", ["Planta", "Bicho", "Hielo"], "pk", "1"],
+["¿Qué tipo es fuerte contra el tipo Agua?", "Planta", ["Fuego", "Roca", "Tierra"], "pk", "1"],
+["¿Qué tipo es fuerte contra el tipo Planta?", "Fuego", ["Agua", "Tierra", "Eléctrico"], "pk", "1"],
+["¿A qué tipo no le hacen nada los ataques eléctricos?", "Tierra", ["Agua", "Volador", "Acero"], "pk", "1"],
+["¿A qué tipo no le hacen nada los ataques de tipo Normal?", "Fantasma", ["Roca", "Acero", "Psíquico"], "pk", "2"],
+["¿Qué tipo no recibe daño de los ataques de tipo Dragón?", "Hada", ["Hielo", "Acero", "Fuego"], "pk", "2"],
+["¿Qué tipo es muy eficaz contra el tipo Dragón?", "Hielo", ["Fuego", "Agua", "Eléctrico"], "pk", "2"],
+["¿Qué tipo es muy eficaz contra el tipo Volador?", "Eléctrico", ["Lucha", "Bicho", "Planta"], "pk", "2"],
+["¿Contra qué tipo es muy eficaz el tipo Lucha?", "Normal", ["Fantasma", "Psíquico", "Volador"], "pk", "2"],
+["¿Cuántos tipos de Pokémon hay?", "18", ["12", "15", "20"], "pk", "2"],
+["¿Qué tipo fue el último en añadirse a los juegos?", "Hada", ["Siniestro", "Acero", "Dragón"], "pk", "2"],
+["¿Cuántos movimientos puede saber un Pokémon a la vez?", "4", ["2", "6", "8"], "pk", "1"],
+["¿Cuántos Pokémon puedes llevar en tu equipo?", "6", ["4", "5", "8"], "pk", "1"],
+["¿Qué le pasa a un Pokémon cuando se queda sin PS?", "Se debilita", ["Se escapa", "Evoluciona", "Desaparece"], "pk", "1"],
+["¿Qué objeto básico recupera PS a tu Pokémon?", "Poción", ["Antídoto", "Repelente", "Cuerda huida"], "pk", "1"],
+["¿Qué objeto cura el envenenamiento?", "Antídoto", ["Poción", "Despertar", "Antiparalizador"], "pk", "1"],
+["¿Qué Poké Ball atrapa a cualquier Pokémon sin fallar?", "Master Ball", ["Ultra Ball", "Super Ball", "Poké Ball"], "pk", "1"],
+["¿Qué problema de estado hace que a veces no puedas moverte?", "Parálisis", ["Quemadura", "Envenenamiento", "Confusión"], "pk", "2"],
+["¿Qué hace el movimiento Salpicadura de Magikarp?", "Nada", ["Mucho daño", "Te cura", "Duerme al rival"], "pk", "1"],
+["¿De qué tipo es el ataque Lanzallamas?", "Fuego", ["Dragón", "Normal", "Lucha"], "pk", "1"],
+["¿De qué tipo es el ataque Rayo?", "Eléctrico", ["Fuego", "Normal", "Psíquico"], "pk", "1"],
+["¿Cómo se llama el protagonista del anime clásico?", "Ash Ketchum", ["Gary Oak", "Red", "Brock"], "pk", "1"],
+["¿Cuál es el primer Pokémon de Ash en el anime?", "Pikachu", ["Charmander", "Squirtle", "Eevee"], "pk", "1"],
+["¿De qué pueblo es Ash?", "Pueblo Paleta", ["Ciudad Verde", "Ciudad Celeste", "Pueblo Lavanda"], "pk", "1"],
+["¿Qué profesor da los Pokémon iniciales en Kanto?", "Profesor Oak", ["Profesor Elm", "Profesor Abedul", "Profesor Serbal"], "pk", "1"],
+["¿Cómo se llaman los malos que van con un Meowth que habla?", "Team Rocket", ["Team Magma", "Team Plasma", "Team Galaxia"], "pk", "1"],
+["¿Qué Pokémon del Team Rocket habla como una persona?", "Meowth", ["Wobbuffet", "Ekans", "Koffing"], "pk", "1"],
+["¿Qué líder de gimnasio usa Pokémon de tipo Agua en Ciudad Celeste?", "Misty", ["Brock", "Erika", "Sabrina"], "pk", "1"],
+["¿Qué líder de gimnasio usa Pokémon de tipo Roca en Ciudad Plateada?", "Brock", ["Misty", "Lt. Surge", "Blaine"], "pk", "1"],
+["¿Cuántas medallas necesitas para ir a la Liga Pokémon?", "8", ["6", "10", "12"], "pk", "1"],
+["¿Cómo se llama la enfermera de los Centros Pokémon?", "Enfermera Joy", ["Agente Jenny", "Enfermera Misty", "Doctora Ivy"], "pk", "1"],
+["¿Cómo se llama la policía del anime?", "Agente Jenny", ["Enfermera Joy", "Delia", "Jessie"], "pk", "2"],
+["¿Cómo se llaman los cuatro mejores entrenadores antes del campeón?", "Alto Mando", ["Élite Plateada", "Los Líderes", "Los Guardianes"], "pk", "2"],
+["¿En qué año ganó Ash por fin el campeonato mundial en el anime?", "2022", ["2016", "2019", "2025"], "pk", "2"],
+["¿Qué aparato te da información de cada Pokémon?", "Pokédex", ["Pokégear", "Bicicleta", "Repartir Exp."], "pk", "1"],
+["¿Cómo se llama la región de los primeros juegos?", "Kanto", ["Johto", "Hoenn", "Sinnoh"], "pk", "1"],
+["¿En qué país se inspira la región de Paldea?", "España", ["México", "Italia", "Grecia"], "pk", "1"],
+["¿En qué país se inspira la región de Galar?", "Reino Unido", ["Francia", "Japón", "Alemania"], "pk", "2"],
+["¿En qué país se inspira la región de Kalos?", "Francia", ["Italia", "Alemania", "Reino Unido"], "pk", "2"],
+["¿En qué juegos se visita la región de Paldea?", "Escarlata y Púrpura", ["Espada y Escudo", "Sol y Luna", "Rojo y Azul"], "pk", "1"],
+["¿Qué legendarios salen en la portada de Escarlata y Púrpura?", "Koraidon y Miraidon", ["Zacian y Zamazenta", "Solgaleo y Lunala", "Xerneas e Yveltal"], "pk", "2"],
+["¿Qué juego de móvil te hace salir a la calle a cazar Pokémon?", "Pokémon GO", ["Pokémon Sleep", "Pokémon Café", "Pokémon Unite"], "pk", "1"],
+["¿En qué año salió el primer juego de Pokémon en Japón?", "1996", ["1990", "1999", "2000"], "pk", "2"],
+["¿Qué quiere decir el nombre «Pokémon»?", "Monstruos de bolsillo", ["Monstruos de poder", "Mascotas monstruo", "Monstruos mágicos"], "pk", "2"],
+["¿Cuántos Pokémon había en la primera generación?", "151", ["100", "150", "251"], "pk", "2"],
+["¿Cómo se llaman los Pokémon de otro color, muy difíciles de encontrar?", "Variocolor", ["Legendarios", "Alfa", "Mega"], "pk", "1"],
+["¿Qué es la Megaevolución?", "Una evolución que solo dura el combate", ["Una evolución para siempre", "Un cambio de tipo fijo", "Hacerse gigante"], "pk", "2"],
+["¿Qué hace gigantes a los Pokémon en Espada y Escudo?", "Dinamax", ["Megaevolución", "Teracristalización", "Movimiento Z"], "pk", "2"],
+["¿Qué pone una corona de cristal a los Pokémon en Escarlata y Púrpura?", "Teracristalización", ["Dinamax", "Megaevolución", "Movimiento Z"], "pk", "2"],
+["¿Dónde curas a tus Pokémon gratis?", "Centro Pokémon", ["Tienda", "Gimnasio", "Laboratorio"], "pk", "1"],
+["¿Dónde compras Poké Balls en los juegos clásicos?", "En la Tienda Pokémon", ["En el Centro Pokémon", "En el gimnasio", "En el Alto Mando"], "pk", "1"],
+["¿Con qué se atrapa a un Pokémon salvaje?", "Con una Poké Ball", ["Con una red", "Con una caja", "Con una cuerda"], "pk", "1"],
+["¿Qué tienes que hacer antes de lanzar la Poké Ball para atraparlo mejor?", "Bajarle los PS", ["Curarlo", "Darle una baya", "Cambiar de Pokémon"], "pk", "1"],
+["¿De qué tipos es Gengar?", "Fantasma y Veneno", ["Solo Fantasma", "Fantasma y Siniestro", "Psíquico"], "pk", "2"],
+["¿De qué tipos es Gyarados?", "Agua y Volador", ["Agua y Dragón", "Solo Agua", "Dragón"], "pk", "2"],
+["¿De qué tipos es Lucario?", "Lucha y Acero", ["Solo Lucha", "Acero y Psíquico", "Siniestro"], "pk", "2"],
+["¿En qué evoluciona Riolu?", "Lucario", ["Zoroark", "Machoke", "Mienshao"], "pk", "1"],
+["¿De qué tipos es Dragonite?", "Dragón y Volador", ["Solo Dragón", "Agua y Dragón", "Normal"], "pk", "2"],
+["¿Qué Pokémon evoluciona en Dragonite?", "Dragonair", ["Gyarados", "Salamence", "Charmeleon"], "pk", "2"],
+["¿Qué Pokémon evoluciona en Butterfree?", "Metapod", ["Kakuna", "Weedle", "Beedrill"], "pk", "1"],
+["¿Qué Pokémon tiene una llama en la punta de la cola?", "Charmander", ["Ponyta", "Vulpix", "Cyndaquil"], "pk", "1"],
+["¿Qué le muerde la cola a Slowpoke para convertirlo en Slowbro?", "Un Shellder", ["Un Krabby", "Un Magikarp", "Un Psyduck"], "pk", "2"],
+["¿Cuál es la última evolución de Pidgey?", "Pidgeot", ["Pidgeotto", "Fearow", "Staraptor"], "pk", "1"],
+["¿Cuál es el inicial de tipo Fuego de Johto?", "Cyndaquil", ["Totodile", "Chikorita", "Torchic"], "pk", "2"],
+["¿Cuál es el inicial de tipo Agua de Hoenn?", "Mudkip", ["Piplup", "Froakie", "Totodile"], "pk", "2"],
+["¿Cuál es el inicial de tipo Planta de Sinnoh?", "Turtwig", ["Treecko", "Snivy", "Rowlet"], "pk", "2"],
+["¿Qué inicial de Kalos es una rana ninja?", "Froakie", ["Popplio", "Mudkip", "Sobble"], "pk", "2"],
+["¿Qué inicial de Alola es un búho?", "Rowlet", ["Litten", "Popplio", "Fletchling"], "pk", "2"],
+["¿Cuáles son los iniciales de Paldea?", "Sprigatito, Fuecoco y Quaxly", ["Grookey, Scorbunny y Sobble", "Rowlet, Litten y Popplio", "Chespin, Fennekin y Froakie"], "pk", "1"],
+["¿Qué inicial de Paldea es un gato de tipo Planta?", "Sprigatito", ["Fuecoco", "Quaxly", "Litten"], "pk", "1"],
+["¿Qué inicial de Paldea es un pato?", "Quaxly", ["Sprigatito", "Fuecoco", "Psyduck"], "pk", "1"],
+["¿Qué inicial de Paldea es un cocodrilo de fuego?", "Fuecoco", ["Sprigatito", "Quaxly", "Totodile"], "pk", "1"],
+["¿Qué Pokémon tiene más PS de base?", "Blissey", ["Snorlax", "Wailord", "Chansey"], "pk", "2"],
+["¿Qué tipo es muy eficaz contra el tipo Fantasma?", "Siniestro", ["Normal", "Lucha", "Psíquico"], "pk", "2"],
+["¿Qué tipo es muy eficaz contra el tipo Psíquico?", "Bicho", ["Lucha", "Veneno", "Normal"], "pk", "2"],
+["¿A qué tipo no le hacen nada los ataques de tipo Psíquico?", "Siniestro", ["Acero", "Normal", "Fantasma"], "pk", "2"],
+["¿A qué tipo no le hacen nada los ataques de tipo Tierra?", "Volador", ["Agua", "Roca", "Acero"], "pk", "1"],
+["¿Qué tipo es muy eficaz contra el tipo Roca?", "Agua", ["Fuego", "Volador", "Bicho"], "pk", "1"],
+["¿Qué tipo es muy eficaz contra el tipo Hielo?", "Fuego", ["Agua", "Planta", "Hielo"], "pk", "1"],
+["¿Qué tipo no se puede envenenar?", "Acero", ["Agua", "Planta", "Normal"], "pk", "2"],
+["¿Qué tipo no se puede quemar?", "Fuego", ["Agua", "Hielo", "Planta"], "pk", "2"],
+["¿Qué movimiento duerme al rival?", "Somnífero", ["Placaje", "Gruñido", "Ascuas"], "pk", "2"],
+["¿Qué objeto despierta a un Pokémon dormido?", "Despertar", ["Antídoto", "Poción", "Revivir"], "pk", "1"],
+["¿Qué objeto recupera a un Pokémon debilitado?", "Revivir", ["Poción", "Despertar", "Antídoto"], "pk", "1"],
+["¿Para qué sirve el Repelente?", "Para que no salgan Pokémon salvajes", ["Para atraer Pokémon", "Para curar", "Para huir del combate"], "pk", "1"],
+["¿Qué objeto te saca al momento de una cueva?", "Cuerda huida", ["Repelente", "Bici", "Mapa"], "pk", "2"],
+["¿Qué le pasa a un Pokémon con la habilidad Levitación?", "No le afectan los ataques de tipo Tierra", ["Vuela más rápido", "No le afecta el agua", "Siempre ataca primero"], "pk", "2"],
+["¿Cómo se llama el rival de Ash en Kanto, nieto del profesor Oak?", "Gary", ["Brock", "Paul", "Red"], "pk", "1"],
+["¿Qué Pokémon de Ash se fue con una bandada de su especie?", "Butterfree", ["Pidgeot", "Charizard", "Squirtle"], "pk", "2"],
+["¿Cómo se llama la madre de Ash?", "Delia", ["Joy", "Jenny", "Misty"], "pk", "2"],
+["¿Quiénes son los protagonistas del anime después de Ash?", "Liko y Roy", ["Gary y Misty", "Serena y Clemont", "Dawn y Brock"], "pk", "2"],
+["¿Qué Pokémon inicial acompaña a Liko?", "Sprigatito", ["Fuecoco", "Quaxly", "Pikachu"], "pk", "2"],
+["¿Cómo se llaman los dos miembros del Team Rocket del anime?", "Jessie y James", ["Ash y Gary", "Joy y Jenny", "Misty y Brock"], "pk", "1"],
+["¿Qué Pokémon de Jessie dice siempre su propio nombre?", "Wobbuffet", ["Meowth", "Arbok", "Koffing"], "pk", "2"],
+["¿Cuáles fueron los primeros juegos de Pokémon en España?", "Rojo y Azul", ["Oro y Plata", "Rojo y Verde", "Rubí y Zafiro"], "pk", "2"],
+["¿En qué consola salieron los primeros juegos de Pokémon?", "Game Boy", ["Nintendo Switch", "PlayStation", "Nintendo DS"], "pk", "1"],
+["¿Qué región se visita en Oro y Plata?", "Johto", ["Hoenn", "Sinnoh", "Teselia"], "pk", "2"],
+["¿En qué juegos está la región de Hoenn?", "Rubí y Zafiro", ["Diamante y Perla", "Negro y Blanco", "X e Y"], "pk", "2"],
+["¿Qué región se inspira en Hawái?", "Alola", ["Galar", "Kalos", "Teselia"], "pk", "2"],
+["¿Qué región se inspira en Nueva York y Estados Unidos?", "Teselia", ["Sinnoh", "Kanto", "Galar"], "pk", "2"],
+["¿Qué juego pasa en la antigua región de Sinnoh?", "Leyendas Pokémon: Arceus", ["Pokémon Espada", "Pokémon Diamante", "Pokémon Stadium"], "pk", "2"],
+["¿Qué juego pasa en Ciudad Luminalia?", "Leyendas Pokémon: Z-A", ["Pokémon Escarlata", "Pokémon Sol", "Pokémon Rubí"], "pk", "2"],
+["¿Cuántas generaciones de Pokémon había hasta Escarlata y Púrpura?", "9", ["7", "8", "10"], "pk", "2"],
+["¿Cómo se llaman los mejores amigos de Harry?", "Ron y Hermione", ["Draco y Neville", "Fred y George", "Luna y Ginny"], "hp", "1"],
+["¿Cómo se llama la lechuza de Harry?", "Hedwig", ["Errol", "Pigwidgeon", "Fawkes"], "hp", "1"],
+["¿Qué animal es Fawkes, la mascota de Dumbledore?", "Un fénix", ["Una lechuza", "Un dragón", "Un hipogrifo"], "hp", "1"],
+["¿Cómo se llama el elfo doméstico que ayuda a Harry?", "Dobby", ["Kreacher", "Winky", "Griphook"], "hp", "1"],
+["¿Quién es el guardabosques de Hogwarts?", "Hagrid", ["Filch", "Lupin", "Slughorn"], "hp", "1"],
+["¿Cómo se llama la gata del conserje Filch?", "La Señora Norris", ["Crookshanks", "Hedwig", "Scabbers"], "hp", "2"],
+["¿Cómo se llama el gato de Hermione?", "Crookshanks", ["La Señora Norris", "Scabbers", "Trevor"], "hp", "2"],
+["¿Qué mascota tiene Ron al principio?", "Una rata llamada Scabbers", ["Un sapo llamado Trevor", "Una lechuza blanca", "Un gato naranja"], "hp", "1"],
+["¿Qué mascota tiene Neville?", "Un sapo", ["Una rata", "Un gato", "Una lechuza"], "hp", "2"],
+["¿Quién es el padrino de Harry?", "Sirius Black", ["Remus Lupin", "Hagrid", "Dumbledore"], "hp", "1"],
+["¿Cuál es el nombre de verdad de Voldemort?", "Tom Ryddle", ["Tom Malfoy", "Gellert Grindelwald", "Severus Snape"], "hp", "2"],
+["¿Qué profesor enseña Pociones en los primeros libros?", "Severus Snape", ["Minerva McGonagall", "Filius Flitwick", "Gilderoy Lockhart"], "hp", "1"],
+["¿Quién es la jefa de la casa Gryffindor?", "Minerva McGonagall", ["Pomona Sprout", "Dolores Umbridge", "Sybill Trelawney"], "hp", "2"],
+["¿En qué animal se puede transformar McGonagall?", "En un gato", ["En un perro", "En una rata", "En un ciervo"], "hp", "2"],
+["¿En qué animal se transforma Sirius Black?", "En un perro negro", ["En un lobo", "En un gato", "En una rata"], "hp", "2"],
+["¿Qué le pasa a Remus Lupin con la luna llena?", "Se convierte en hombre lobo", ["Se vuelve invisible", "Se queda dormido", "Puede volar"], "hp", "1"],
+["¿Cuántos hermanos tiene Ron?", "6", ["3", "4", "5"], "hp", "2"],
+["¿Cómo se llaman los gemelos Weasley?", "Fred y George", ["Bill y Charlie", "Percy y Ron", "Harry y Ron"], "hp", "1"],
+["¿Cómo se llama la hermana de Ron?", "Ginny", ["Luna", "Hermione", "Cho"], "hp", "1"],
+["¿Quién es el gran rival de Harry en el colegio?", "Draco Malfoy", ["Neville Longbottom", "Cedric Diggory", "Seamus Finnigan"], "hp", "1"],
+["¿Con qué tíos vive Harry?", "Los Dursley", ["Los Weasley", "Los Malfoy", "Los Lovegood"], "hp", "1"],
+["¿Cómo se llama el primo de Harry?", "Dudley", ["Vernon", "Percy", "Dennis"], "hp", "1"],
+["¿Dónde duerme Harry al principio en casa de sus tíos?", "En la alacena debajo de la escalera", ["En el desván", "En el jardín", "En el garaje"], "hp", "1"],
+["¿Quién le dice a Harry que es un mago?", "Hagrid", ["Dumbledore", "McGonagall", "Ron"], "hp", "1"],
+["¿Cómo se llaman los padres de Harry?", "James y Lily", ["Arthur y Molly", "Vernon y Petunia", "Frank y Alice"], "hp", "1"],
+["¿Qué es Griphook?", "Un duende del banco Gringotts", ["Un elfo doméstico", "Un fantasma", "Un centauro"], "hp", "2"],
+["¿Quién es Nick Casi Decapitado?", "El fantasma de Gryffindor", ["El fantasma de Slytherin", "Un profesor", "Un elfo"], "hp", "2"],
+["¿Cómo se llama el perro de tres cabezas de Hagrid?", "Fluffy", ["Norberto", "Buckbeak", "Aragog"], "hp", "2"],
+["¿Cómo se llama el dragón bebé de Hagrid?", "Norberto", ["Fluffy", "Aragog", "Buckbeak"], "hp", "2"],
+["¿Qué es Buckbeak?", "Un hipogrifo", ["Un dragón", "Un fénix", "Un centauro"], "hp", "2"],
+["¿Qué es Aragog?", "Una araña gigante", ["Un dragón", "Una serpiente", "Un trol"], "hp", "2"],
+["¿Quién lleva unos pendientes de rábano?", "Luna Lovegood", ["Ginny Weasley", "Hermione Granger", "Cho Chang"], "hp", "2"],
+["¿Quién es el director de Hogwarts durante casi toda la saga?", "Albus Dumbledore", ["Severus Snape", "Hagrid", "Filch"], "hp", "1"],
+["¿Qué hechizo hace flotar las cosas?", "Wingardium Leviosa", ["Expelliarmus", "Lumos", "Accio"], "hp", "1"],
+["¿Qué hechizo enciende una luz en la punta de la varita?", "Lumos", ["Nox", "Incendio", "Alohomora"], "hp", "1"],
+["¿Qué hechizo apaga la luz de la varita?", "Nox", ["Lumos", "Finite", "Silencio"], "hp", "2"],
+["¿Qué hechizo abre puertas cerradas con llave?", "Alohomora", ["Accio", "Reparo", "Lumos"], "hp", "1"],
+["¿Qué hechizo le quita la varita al rival?", "Expelliarmus", ["Desmaius", "Petrificus Totalus", "Riddikulus"], "hp", "1"],
+["¿Qué hechizo atrae un objeto hacia ti?", "Accio", ["Alohomora", "Reparo", "Wingardium Leviosa"], "hp", "1"],
+["¿Qué hechizo hace aparecer un Patronus?", "Expecto Patronum", ["Expelliarmus", "Lumos Maxima", "Protego"], "hp", "1"],
+["¿Contra qué criaturas se usa el Patronus?", "Contra los dementores", ["Contra los trols", "Contra los dragones", "Contra las arañas"], "hp", "1"],
+["¿Qué forma tiene el Patronus de Harry?", "Un ciervo", ["Un perro", "Una nutria", "Un fénix"], "hp", "2"],
+["¿Qué forma tiene el Patronus de Hermione?", "Una nutria", ["Un gato", "Un ciervo", "Un conejo"], "hp", "2"],
+["¿Qué hechizo se usa contra un boggart?", "Riddikulus", ["Expelliarmus", "Lumos", "Obliviate"], "hp", "2"],
+["¿Qué hechizo borra la memoria?", "Obliviate", ["Riddikulus", "Accio", "Protego"], "hp", "2"],
+["¿Qué hechizo arregla las cosas rotas?", "Reparo", ["Accio", "Alohomora", "Nox"], "hp", "1"],
+["¿Qué hechizo deja a alguien tieso como una tabla?", "Petrificus Totalus", ["Desmaius", "Expelliarmus", "Lumos"], "hp", "2"],
+["¿Qué hechizo crea un escudo protector?", "Protego", ["Accio", "Reparo", "Nox"], "hp", "2"],
+["¿Qué poción da muy buena suerte?", "Felix Felicis", ["Poción multijugos", "Veritaserum", "Amortentia"], "hp", "2"],
+["¿Qué poción te convierte en otra persona?", "Poción multijugos", ["Felix Felicis", "Veritaserum", "Amortentia"], "hp", "2"],
+["¿Qué poción obliga a decir la verdad?", "Veritaserum", ["Felix Felicis", "Poción multijugos", "Poción matalobos"], "hp", "2"],
+["¿Qué objeto hace invisible a Harry?", "La capa de invisibilidad", ["El giratiempo", "El mapa del merodeador", "La varita de saúco"], "hp", "1"],
+["¿Qué mapa enseña dónde está cada persona en Hogwarts?", "El mapa del merodeador", ["El mapa de Hogsmeade", "El mapa de la Orden", "El mapa del tesoro"], "hp", "1"],
+["¿Qué usa Hermione para ir a dos clases a la vez?", "Un giratiempo", ["Una capa", "Un traslador", "Una recordadora"], "hp", "2"],
+["¿Qué es un traslador?", "Un objeto que te lleva a otro sitio al tocarlo", ["Una escoba muy rápida", "Un hechizo de fuego", "Un animal mágico"], "hp", "2"],
+["¿Qué es una recordadora?", "Una bola que se pone roja si has olvidado algo", ["Un diario mágico", "Una varita", "Un reloj"], "hp", "2"],
+["¿Qué lleva dentro la varita de Harry?", "Una pluma de fénix", ["Un pelo de unicornio", "Fibra de corazón de dragón", "Un pelo de veela"], "hp", "2"],
+["¿En qué tienda del callejón Diagon se compran varitas?", "Ollivander", ["Gringotts", "Flourish y Blotts", "Sortilegios Weasley"], "hp", "1"],
+["¿Cuáles son las tres Reliquias de la Muerte?", "Varita de saúco, piedra de la resurrección y capa de invisibilidad", ["Espada, copa y diadema", "Varita, escoba y mapa", "Giratiempo, capa y espejo"], "hp", "2"],
+["¿Qué son los horrocruxes?", "Objetos donde Voldemort esconde trozos de su alma", ["Pociones prohibidas", "Dragones guardianes", "Llaves mágicas"], "hp", "2"],
+["¿Qué espejo enseña lo que más deseas?", "El espejo de Oesed", ["El espejo de Gringotts", "El espejo del Sombrero", "El espejo de Azkaban"], "hp", "2"],
+["¿Cuántas casas hay en Hogwarts?", "4", ["3", "5", "6"], "hp", "1"],
+["¿En qué casa está Harry?", "Gryffindor", ["Slytherin", "Hufflepuff", "Ravenclaw"], "hp", "1"],
+["¿En qué casa está Draco Malfoy?", "Slytherin", ["Gryffindor", "Hufflepuff", "Ravenclaw"], "hp", "1"],
+["¿Qué animal representa a Gryffindor?", "Un león", ["Una serpiente", "Un tejón", "Un águila"], "hp", "1"],
+["¿Qué animal representa a Hufflepuff?", "Un tejón", ["Un león", "Una serpiente", "Un águila"], "hp", "1"],
+["¿Qué animal representa a Ravenclaw?", "Un águila", ["Un cuervo", "Un león", "Un tejón"], "hp", "2"],
+["¿Qué animal representa a Slytherin?", "Una serpiente", ["Un león", "Un águila", "Un tejón"], "hp", "1"],
+["¿Quién decide a qué casa vas?", "El Sombrero Seleccionador", ["Dumbledore", "Un examen", "Un hechizo"], "hp", "1"],
+["¿De qué andén sale el tren a Hogwarts?", "Del andén nueve y tres cuartos", ["Del andén siete y medio", "Del andén diez", "Del andén doce y cuarto"], "hp", "1"],
+["¿Cómo se llama el tren que lleva a Hogwarts?", "Expreso de Hogwarts", ["Tren Mágico", "Expreso Nocturno", "Autobús noctámbulo"], "hp", "1"],
+["¿Cómo se llama el pueblo de magos que hay junto a Hogwarts?", "Hogsmeade", ["Godric's Hollow", "Little Whinging", "Ottery St. Catchpole"], "hp", "2"],
+["¿Cómo se llama el deporte de los magos?", "Quidditch", ["Escobol", "Fútbol mágico", "Quodpot"], "hp", "1"],
+["¿Cuántos jugadores tiene un equipo de Quidditch?", "7", ["5", "9", "11"], "hp", "2"],
+["¿En qué puesto juega Harry al Quidditch?", "Buscador", ["Guardián", "Golpeador", "Cazador"], "hp", "1"],
+["¿Qué pelota tiene que atrapar el buscador?", "La snitch dorada", ["La quaffle", "La bludger", "La pelota roja"], "hp", "1"],
+["¿Cuántos puntos vale atrapar la snitch?", "150", ["10", "50", "100"], "hp", "2"],
+["¿Qué es el Gran Comedor?", "Donde comen todos los alumnos", ["La biblioteca", "El campo de Quidditch", "La cocina de los elfos"], "hp", "1"],
+["¿Dónde está la sala común de Slytherin?", "En las mazmorras, bajo el lago", ["En lo alto de una torre", "Junto a las cocinas", "En el bosque"], "hp", "2"],
+["¿Cómo se llama el bosque peligroso que hay junto a Hogwarts?", "Bosque Prohibido", ["Bosque Oscuro", "Bosque Encantado", "Bosque de Dean"], "hp", "1"],
+["¿Qué árbol da golpes a quien se acerca?", "El sauce boxeador", ["El roble loco", "El pino furioso", "El abeto gruñón"], "hp", "1"],
+["¿Cómo se llama el banco de los magos?", "Gringotts", ["Ollivander", "Azkaban", "Honeydukes"], "hp", "1"],
+["¿Qué es Azkaban?", "La cárcel de los magos", ["Un colegio", "Un banco", "Una tienda de dulces"], "hp", "1"],
+["¿Cómo se llama la tienda de dulces de Hogsmeade?", "Honeydukes", ["Zonko", "Las Tres Escobas", "Cabeza de Puerco"], "hp", "2"],
+["¿Qué bebida famosa toman en Las Tres Escobas?", "Cerveza de mantequilla", ["Zumo de calabaza", "Té con leche", "Chocolate caliente"], "hp", "2"],
+["¿Qué caramelos tienen todos los sabores, hasta los más asquerosos?", "Grageas de todos los sabores", ["Ranas de chocolate", "Meigas fritas", "Plumas de azúcar"], "hp", "1"],
+["¿Qué viene dentro de cada rana de chocolate?", "Un cromo de un mago famoso", ["Una moneda", "Un juguete", "Un mensaje secreto"], "hp", "2"],
+["¿Qué colegios van a Hogwarts al Torneo de los Tres Magos?", "Beauxbatons y Durmstrang", ["Ilvermorny y Castelobruxo", "Mahoutokoro y Uagadou", "Ninguno, es solo de Hogwarts"], "hp", "2"],
+["¿Cómo se titula el primer libro?", "Harry Potter y la piedra filosofal", ["Harry Potter y la cámara secreta", "Harry Potter y el cáliz de fuego", "Harry Potter y el prisionero de Azkaban"], "hp", "1"],
+["¿Cuántos libros principales tiene la saga?", "7", ["5", "6", "8"], "hp", "1"],
+["¿Cuántas películas principales de Harry Potter hay?", "8", ["6", "7", "10"], "hp", "2"],
+["¿Quién escribió los libros de Harry Potter?", "J. K. Rowling", ["Roald Dahl", "J. R. R. Tolkien", "Laura Gallego"], "hp", "1"],
+["¿En qué libro se celebra el Torneo de los Tres Magos?", "Harry Potter y el cáliz de fuego", ["Harry Potter y la Orden del Fénix", "Harry Potter y la piedra filosofal", "Harry Potter y el misterio del príncipe"], "hp", "2"],
+["¿En qué libro aparece Sirius Black por primera vez?", "Harry Potter y el prisionero de Azkaban", ["Harry Potter y la cámara secreta", "Harry Potter y el cáliz de fuego", "Harry Potter y las reliquias de la Muerte"], "hp", "2"],
+["¿Qué monstruo vive en la Cámara Secreta?", "Un basilisco", ["Un dragón", "Una esfinge", "Un trol"], "hp", "2"],
+["¿Qué actor hace de Harry en las películas?", "Daniel Radcliffe", ["Rupert Grint", "Tom Felton", "Robert Pattinson"], "hp", "1"],
+["¿Qué actriz hace de Hermione en las películas?", "Emma Watson", ["Emma Stone", "Bonnie Wright", "Evanna Lynch"], "hp", "1"],
+["¿Qué actor hace de Ron en las películas?", "Rupert Grint", ["Daniel Radcliffe", "Tom Felton", "Matthew Lewis"], "hp", "2"],
+["¿En qué año se estrenó la primera película?", "2001", ["1997", "1999", "2005"], "hp", "2"],
+["¿Qué forma tiene la cicatriz de Harry?", "Un rayo", ["Una estrella", "Una luna", "Una cruz"], "hp", "1"],
+["¿Cómo llaman los magos a las personas sin magia?", "Muggles", ["Squibs", "Elfos", "Centauros"], "hp", "1"],
+["¿Cómo se llaman los seguidores de Voldemort?", "Mortífagos", ["Aurores", "Inferi", "Dementores"], "hp", "2"],
+["¿Qué es un auror?", "Un mago que caza a magos tenebrosos", ["Un profesor de Hogwarts", "Un elfo doméstico", "Un tipo de escoba"], "hp", "2"],
+["¿Qué escoba le regalan a Harry en el primer libro?", "Una Nimbus 2000", ["Una Saeta de Fuego", "Una Barredora 7", "Una Nimbus 2001"], "hp", "2"],
+["¿Qué escoba le regala Sirius a Harry?", "Una Saeta de Fuego", ["Una Nimbus 2000", "Una Nimbus 2001", "Una Cometa 260"], "hp", "2"],
+["¿Qué autobús recoge a los magos que se han perdido?", "El autobús noctámbulo", ["El Expreso de Hogwarts", "El autobús muggle", "El traslador"], "hp", "2"],
+["¿Qué fantasma da la clase de Historia de la Magia?", "El profesor Binns", ["El profesor Quirrell", "El profesor Flitwick", "El profesor Slughorn"], "hp", "2"],
+["¿Qué profesor esconde a Voldemort bajo el turbante en el primer libro?", "Quirrell", ["Snape", "Lockhart", "Lupin"], "hp", "2"],
+["¿Qué profesor presume mucho y escribe libros sobre sí mismo?", "Gilderoy Lockhart", ["Severus Snape", "Remus Lupin", "Filius Flitwick"], "hp", "1"],
+["¿Qué profesora va siempre de rosa y pone normas por todo?", "Dolores Umbridge", ["Minerva McGonagall", "Pomona Sprout", "Sybill Trelawney"], "hp", "1"],
+["¿Qué profesora dice que adivina el futuro?", "Sybill Trelawney", ["Dolores Umbridge", "Pomona Sprout", "Rolanda Hooch"], "hp", "1"],
+["¿Qué asignatura da la profesora Sprout?", "Herbología", ["Encantamientos", "Pociones", "Astronomía"], "hp", "2"],
+["¿Qué asignatura da el profesor Flitwick?", "Encantamientos", ["Herbología", "Transformaciones", "Pociones"], "hp", "2"],
+["¿Qué asignatura da la profesora McGonagall?", "Transformaciones", ["Pociones", "Encantamientos", "Herbología"], "hp", "2"],
+["¿Cómo se llama el conserje de Hogwarts?", "Argus Filch", ["Hagrid", "Peeves", "Ollivander"], "hp", "1"],
+["¿Quién es Peeves?", "Un poltergeist que hace travesuras", ["Un elfo doméstico", "Un profesor", "El fantasma de Slytherin"], "hp", "2"],
+["¿Cómo se llama el elfo doméstico de la familia Black?", "Kreacher", ["Dobby", "Winky", "Hokey"], "hp", "2"],
+["¿Qué le da Harry a Dobby para que sea libre?", "Un calcetín", ["Un gorro", "Una bufanda", "Un zapato"], "hp", "1"],
+["¿Quién es Cedric Diggory?", "Un campeón de Hufflepuff en el Torneo", ["Un profesor", "Un hermano de Ron", "Un jugador de Slytherin"], "hp", "2"],
+["¿Quién es el Príncipe Mestizo?", "Severus Snape", ["Voldemort", "Harry Potter", "Dumbledore"], "hp", "2"],
+["¿Con quién se casa Harry al final de la saga?", "Ginny Weasley", ["Hermione Granger", "Luna Lovegood", "Cho Chang"], "hp", "1"],
+["¿Con quién se casa Hermione?", "Ron Weasley", ["Harry Potter", "Neville Longbottom", "Draco Malfoy"], "hp", "1"],
+["¿Dónde trabaja el padre de Ron?", "En el Ministerio de Magia", ["En Hogwarts", "En la tienda de varitas", "En el banco Gringotts"], "hp", "2"],
+["¿Qué le encanta coleccionar a Arthur Weasley?", "Objetos muggles", ["Dragones", "Escobas", "Arañas"], "hp", "2"],
+["¿Cómo se llama el padre de Draco?", "Lucius Malfoy", ["Vernon Malfoy", "Tom Malfoy", "Severus Malfoy"], "hp", "2"],
+["¿Con qué criaturas trabaja Charlie Weasley en Rumanía?", "Con dragones", ["Con hipogrifos", "Con unicornios", "Con centauros"], "hp", "2"],
+["¿Qué hace un dementor?", "Te quita la alegría", ["Te protege", "Limpia el castillo", "Lleva las cartas"], "hp", "1"],
+["¿Qué criatura es mitad persona y mitad caballo?", "Un centauro", ["Un hipogrifo", "Un fénix", "Un unicornio"], "hp", "1"],
+["¿Quién es Nagini?", "La serpiente de Voldemort", ["La lechuza de Draco", "El gato de Snape", "El dragón de Hagrid"], "hp", "2"],
+["¿Quién acaba con Nagini usando la espada de Gryffindor?", "Neville Longbottom", ["Harry Potter", "Ron Weasley", "Hermione Granger"], "hp", "2"],
+["¿Qué hechizo desmaya al rival?", "Desmaius", ["Expelliarmus", "Lumos", "Accio"], "hp", "2"],
+["¿Qué hechizo hace salir agua de la varita?", "Aguamenti", ["Incendio", "Accio", "Lumos"], "hp", "2"],
+["¿Qué hechizo hace fuego?", "Incendio", ["Aguamenti", "Nox", "Reparo"], "hp", "2"],
+["¿Cómo se llama la carta que grita?", "Vociferador", ["Traslador", "Pensadero", "Giratiempo"], "hp", "2"],
+["¿Para qué sirve el pensadero?", "Para ver recuerdos", ["Para ver el futuro", "Para hacer pociones", "Para hablar con fantasmas"], "hp", "2"],
+["¿Qué come Harry para respirar bajo el agua en el Torneo?", "Branquialgas", ["Una gragea", "Una rana de chocolate", "Una mandrágora"], "hp", "2"],
+["¿Qué hay que hacer en la primera prueba del Torneo de los Tres Magos?", "Coger un huevo de oro que guarda un dragón", ["Nadar en el lago", "Cruzar un laberinto", "Ganar una carrera de escobas"], "hp", "2"],
+["¿A qué juego es muy bueno Ron?", "Al ajedrez mágico", ["A los naipes explosivos", "A los gobstones", "Al Quidditch de mesa"], "hp", "1"],
+["¿Para qué sirven los polvos flu?", "Para viajar por las chimeneas", ["Para hacer pociones", "Para limpiar", "Para volar"], "hp", "1"],
+["¿Qué es la piedra filosofal?", "Una piedra que da la vida eterna", ["Una piedra que vuela", "Un diamante del banco", "Una llave mágica"], "hp", "1"],
+["¿Qué es una mandrágora?", "Una planta que grita", ["Un animal", "Un hechizo", "Una poción"], "hp", "2"],
+["¿Qué tiene de especial la varita de saúco?", "Es la varita más poderosa", ["Te hace invisible", "Hace pociones sola", "Habla"], "hp", "2"],
+["¿De qué colores es Gryffindor?", "Rojo y dorado", ["Verde y plateado", "Azul y bronce", "Amarillo y negro"], "hp", "1"],
+["¿De qué colores es Slytherin?", "Verde y plateado", ["Rojo y dorado", "Azul y bronce", "Amarillo y negro"], "hp", "1"],
+["¿De qué colores es Hufflepuff?", "Amarillo y negro", ["Rojo y dorado", "Verde y plateado", "Azul y bronce"], "hp", "2"],
+["¿De qué colores es Ravenclaw en los libros?", "Azul y bronce", ["Rojo y dorado", "Verde y plateado", "Amarillo y negro"], "hp", "2"],
+["¿Cómo se entra en la sala común de Gryffindor?", "Diciendo la contraseña a la Dama Gorda", ["Resolviendo un acertijo", "Dando golpes a un barril", "Pasando por las cocinas"], "hp", "2"],
+["¿Cómo se entra en la sala común de Ravenclaw?", "Resolviendo un acertijo", ["Diciendo una contraseña a un cuadro", "Dando golpes a un barril", "Con una llave"], "hp", "2"],
+["¿Qué sala aparece solo cuando la necesitas de verdad?", "La Sala de los Menesteres", ["La sala común", "La Cámara Secreta", "El Gran Comedor"], "hp", "2"],
+["¿Cómo llegan al castillo los alumnos de primer año?", "En barcas por el lago", ["En escoba", "En autobús", "Andando por el bosque"], "hp", "2"],
+["¿Qué criaturas tiran de los carruajes de Hogwarts?", "Thestrals", ["Caballos normales", "Hipogrifos", "Nada, van solos"], "hp", "2"],
+["¿Cómo se llama la calle de Londres con tiendas de magia?", "Callejón Diagon", ["Callejón Knockturn", "Privet Drive", "Grimmauld Place"], "hp", "1"],
+["¿En qué calle viven los Dursley?", "Privet Drive", ["Grimmauld Place", "Callejón Diagon", "La calle de la Hilandera"], "hp", "2"],
+["¿Cómo se llama la casa de los Weasley?", "La Madriguera", ["Grimmauld Place", "La Mansión", "El Refugio"], "hp", "1"],
+["¿Qué pub de Londres lleva al callejón Diagon?", "El Caldero Chorreante", ["Las Tres Escobas", "Cabeza de Puerco", "Honeydukes"], "hp", "2"],
+["¿Qué tienen de raro las escaleras de Hogwarts?", "Se mueven", ["Desaparecen", "Hablan", "Son de cristal"], "hp", "1"],
+["¿Quién enseña a volar en escoba?", "La señora Hooch", ["La profesora McGonagall", "La profesora Sprout", "La señora Pomfrey"], "hp", "2"],
+["¿Quién es la enfermera de Hogwarts?", "La señora Pomfrey", ["La señora Hooch", "La profesora Sprout", "La señora Pince"], "hp", "2"],
+["¿Cómo se titula el segundo libro?", "Harry Potter y la cámara secreta", ["Harry Potter y la piedra filosofal", "Harry Potter y el cáliz de fuego", "Harry Potter y el misterio del príncipe"], "hp", "1"],
+["¿Cómo se titula el último libro?", "Harry Potter y las reliquias de la Muerte", ["Harry Potter y la Orden del Fénix", "Harry Potter y el misterio del príncipe", "Harry Potter y el cáliz de fuego"], "hp", "1"],
+["¿Cuál es el quinto libro?", "Harry Potter y la Orden del Fénix", ["Harry Potter y el cáliz de fuego", "Harry Potter y el misterio del príncipe", "Harry Potter y el prisionero de Azkaban"], "hp", "2"],
+["¿Qué actor hace de Draco Malfoy?", "Tom Felton", ["Rupert Grint", "Matthew Lewis", "Daniel Radcliffe"], "hp", "2"],
+["¿Qué actor hace de Voldemort?", "Ralph Fiennes", ["Alan Rickman", "Gary Oldman", "Michael Gambon"], "hp", "2"],
+["¿Qué actor hace de Snape?", "Alan Rickman", ["Ralph Fiennes", "Gary Oldman", "Richard Harris"], "hp", "2"],
+["¿Cuántos años tiene Harry cuando sabe que es mago?", "11", ["10", "12", "13"], "hp", "1"],
+["¿Qué día es el cumpleaños de Harry?", "31 de julio", ["1 de septiembre", "31 de octubre", "25 de diciembre"], "hp", "2"],
+["¿Qué día sale cada año el Expreso de Hogwarts?", "1 de septiembre", ["31 de julio", "1 de octubre", "15 de agosto"], "hp", "2"],
+["¿Qué películas cuentan la historia de Newt Scamander?", "Animales fantásticos", ["Las crónicas de Narnia", "El señor de los anillos", "Percy Jackson"], "hp", "2"],
+["¿Cuánto es 7 × 8?", "56", ["54", "63", "48"], "cole", "1"],
+["¿Cuánto es la mitad de 250?", "125", ["150", "115", "100"], "cole", "1"],
+["¿Cuántos lados tiene un hexágono?", "6", ["5", "7", "8"], "cole", "1"],
+["¿Cuántos centímetros tiene un metro?", "100", ["10", "1.000", "50"], "cole", "1"],
+["¿Qué número es el mayor?", "0,7", ["0,65", "0,09", "0,6"], "cole", "1"],
+["¿Cuánto mide un ángulo recto?", "90 grados", ["45 grados", "180 grados", "360 grados"], "cole", "1"],
+["¿Qué tipo de palabra es «casa»?", "Sustantivo", ["Verbo", "Adjetivo", "Adverbio"], "cole", "1"],
+["¿Qué tipo de palabra es «correr»?", "Verbo", ["Sustantivo", "Adjetivo", "Adverbio"], "cole", "1"],
+["¿Cuál es un sinónimo de «contento»?", "Alegre", ["Triste", "Enfadado", "Cansado"], "cole", "1"],
+["¿Cuál es el antónimo de «alto»?", "Bajo", ["Grande", "Largo", "Fuerte"], "cole", "1"],
+["¿Cuántas sílabas tiene «mariposa»?", "4", ["3", "5", "2"], "cole", "1"],
+["¿Cuál de estas palabras es aguda?", "Camión", ["Árbol", "Mesa", "Pájaro"], "cole", "1"],
+["¿Qué planeta está más cerca del Sol?", "Mercurio", ["Venus", "La Tierra", "Marte"], "cole", "1"],
+["¿Qué órgano bombea la sangre?", "El corazón", ["Los pulmones", "El hígado", "El estómago"], "cole", "1"],
+["¿Cómo se llaman los animales que solo comen plantas?", "Herbívoros", ["Carnívoros", "Omnívoros", "Insectívoros"], "cole", "1"],
+["¿Qué gas toman las plantas para hacer la fotosíntesis?", "Dióxido de carbono", ["Oxígeno", "Nitrógeno", "Helio"], "cole", "1"],
+["¿En qué estado está el agua cuando es hielo?", "Sólido", ["Líquido", "Gaseoso", "Ninguno"], "cole", "1"],
+["¿Qué animales tienen plumas?", "Las aves", ["Los reptiles", "Los mamíferos", "Los peces"], "cole", "1"],
+["¿Cuál es la capital de España?", "Madrid", ["Barcelona", "Sevilla", "Toledo"], "cole", "1"],
+["¿Cuál es el río más largo de la península ibérica?", "El Tajo", ["El Ebro", "El Guadalquivir", "El Duero"], "cole", "1"],
+["¿Cuántas comunidades autónomas tiene España?", "17", ["15", "19", "50"], "cole", "1"],
+["¿En qué comunidad autónoma está Albacete?", "Castilla-La Mancha", ["Murcia", "Andalucía", "Comunidad Valenciana"], "cole", "1"],
+["¿Cuál es el océano más grande?", "El Pacífico", ["El Atlántico", "El Índico", "El Ártico"], "cole", "1"],
+["¿Cuál es la montaña más alta de España?", "El Teide", ["El Mulhacén", "El Aneto", "El Veleta"], "cole", "1"],
+["¿Cómo se dice «perro» en inglés?", "Dog", ["Cat", "Bird", "Duck"], "cole", "1"],
+["¿Qué significa «Monday»?", "Lunes", ["Martes", "Domingo", "Viernes"], "cole", "1"],
+["¿Cómo se dice «rojo» en inglés?", "Red", ["Blue", "Green", "Yellow"], "cole", "1"],
+["¿Qué significa «kitchen»?", "Cocina", ["Baño", "Dormitorio", "Jardín"], "cole", "1"],
+["¿Cuánto es el 15 % de 200?", "30", ["15", "20", "40"], "cole", "1"],
+["¿Cuánto son 3/4 de 100?", "75", ["25", "50", "34"], "cole", "1"],
+["¿Cuál es el área de un rectángulo de 6 cm por 4 cm?", "24 cm²", ["20 cm²", "10 cm²", "48 cm²"], "cole", "1"],
+["¿Cuánto suman los ángulos de un triángulo?", "180 grados", ["90 grados", "360 grados", "270 grados"], "cole", "1"],
+["¿Cuál es el mínimo común múltiplo de 4 y 6?", "12", ["24", "2", "10"], "cole", "1"],
+["¿Qué número es la L en números romanos?", "50", ["100", "10", "500"], "cole", "1"],
+["¿Cuánto es 2 elevado a 3?", "8", ["6", "9", "5"], "cole", "1"],
+["¿Qué tipo de palabra es «rápidamente»?", "Adverbio", ["Adjetivo", "Verbo", "Sustantivo"], "cole", "1"],
+["¿En qué tiempo está «cantaré»?", "Futuro", ["Pasado", "Presente", "Condicional"], "cole", "1"],
+["¿Qué figura literaria es «sus dientes son perlas»?", "Metáfora", ["Rima", "Hipérbole", "Onomatopeya"], "cole", "1"],
+["¿Qué es «¡pum!»?", "Una onomatopeya", ["Una metáfora", "Una comparación", "Una rima"], "cole", "1"],
+["¿Cuál es el sujeto en «El perro de Ana ladra»?", "El perro de Ana", ["Ana", "Ladra", "De Ana"], "cole", "1"],
+["¿Cuál de estas palabras lleva tilde?", "Lápiz", ["Reloj", "Pared", "Feliz"], "cole", "1"],
+["¿Cuál es la unidad más pequeña de los seres vivos?", "La célula", ["El átomo", "El órgano", "El tejido"], "cole", "1"],
+["¿Qué órganos limpian la sangre y fabrican la orina?", "Los riñones", ["El hígado", "Los pulmones", "El corazón"], "cole", "1"],
+["¿Cómo se llama la energía que viene del Sol?", "Energía solar", ["Energía eólica", "Energía nuclear", "Energía hidráulica"], "cole", "1"],
+["¿Cuál es el planeta más grande del sistema solar?", "Júpiter", ["Saturno", "Neptuno", "La Tierra"], "cole", "1"],
+["¿A qué temperatura hierve el agua al nivel del mar?", "100 °C", ["50 °C", "0 °C", "200 °C"], "cole", "1"],
+["¿Qué parte de la planta absorbe el agua del suelo?", "La raíz", ["La hoja", "La flor", "El tallo"], "cole", "1"],
+["¿En qué año llegó Colón a América?", "1492", ["1592", "1392", "1500"], "cole", "1"],
+["¿Qué montañas separan España de Francia?", "Los Pirineos", ["Los Alpes", "El Sistema Central", "La cordillera Cantábrica"], "cole", "1"],
+["¿Cuál es la capital de Francia?", "París", ["Lyon", "Marsella", "Bruselas"], "cole", "1"],
+["¿En qué año se aprobó la Constitución española?", "1978", ["1975", "1982", "1931"], "cole", "1"],
+["¿Qué civilización construyó las pirámides de Guiza?", "Los egipcios", ["Los romanos", "Los griegos", "Los mayas"], "cole", "1"],
+["¿Cuál es el desierto más grande de África?", "El Sáhara", ["El Kalahari", "El Gobi", "El de Atacama"], "cole", "1"],
+["¿Cuál es el pasado de «go»?", "Went", ["Goed", "Gone", "Going"], "cole", "1"],
+["¿Qué significa «always»?", "Siempre", ["Nunca", "A veces", "Hoy"], "cole", "1"],
+["¿Cómo se escribe «cuarenta» en inglés?", "Forty", ["Fourty", "Fourteen", "Four"], "cole", "1"],
+["Completa: «I ___ a student»", "am", ["is", "are", "be"], "cole", "1"],
+["¿Cuánto es (−3) × (−4)?", "12", ["−12", "7", "−7"], "cole", "2"],
+["¿Cuál es la raíz cuadrada de 81?", "9", ["8", "7", "18"], "cole", "2"],
+["¿Cuál de estos números es primo?", "17", ["21", "15", "27"], "cole", "2"],
+["¿Cuánto es 5 − (−3)?", "8", ["2", "−8", "−2"], "cole", "2"],
+["¿Cuánto es 1/2 + 1/4?", "3/4", ["2/6", "1/6", "2/4"], "cole", "2"],
+["¿Cuál es el máximo común divisor de 12 y 18?", "6", ["3", "36", "2"], "cole", "2"],
+["¿Qué es un número primo?", "El que solo se divide entre 1 y él mismo", ["Cualquier número par", "El que acaba en 0", "El que tiene decimales"], "cole", "2"],
+["¿Qué tipo de texto es una noticia?", "Informativo", ["Poético", "Instructivo", "Teatral"], "cole", "2"],
+["¿Cuáles son los tres grandes géneros literarios?", "Lírica, narrativa y teatro", ["Cuento, novela y poema", "Prosa, verso y rima", "Comedia, drama y tragedia"], "cole", "2"],
+["¿Cuántos versos tiene un soneto?", "14", ["12", "10", "16"], "cole", "2"],
+["¿Quién escribió «Don Quijote de la Mancha»?", "Miguel de Cervantes", ["Lope de Vega", "Francisco de Quevedo", "Federico García Lorca"], "cole", "2"],
+["¿Qué es el predicado de una oración?", "Lo que se dice del sujeto", ["Quien hace la acción", "Una palabra que acaba en -mente", "El título del texto"], "cole", "2"],
+["¿Cómo se llama una estrofa de dos versos que riman?", "Pareado", ["Terceto", "Cuarteto", "Soneto"], "cole", "2"],
+["¿En qué capa de la Tierra vivimos?", "La corteza", ["El manto", "El núcleo", "La atmósfera"], "cole", "2"],
+["¿Cuál es el gas que más abunda en el aire?", "El nitrógeno", ["El oxígeno", "El dióxido de carbono", "El helio"], "cole", "2"],
+["¿Qué tipo de roca es el granito?", "Magmática", ["Sedimentaria", "Metamórfica", "Orgánica"], "cole", "2"],
+["¿Cómo se llaman los animales sin columna vertebral?", "Invertebrados", ["Vertebrados", "Mamíferos", "Anfibios"], "cole", "2"],
+["¿A qué reino pertenecen las setas?", "Al de los hongos", ["Al de las plantas", "Al de los animales", "Al de las algas"], "cole", "2"],
+["¿Qué fuerza hace que las cosas caigan al suelo?", "La gravedad", ["El magnetismo", "La electricidad", "El rozamiento"], "cole", "2"],
+["¿Cuántos planetas tiene el sistema solar?", "8", ["9", "7", "10"], "cole", "2"],
+["¿En qué época de la Prehistoria empezaron la agricultura y la ganadería?", "Neolítico", ["Paleolítico", "Edad de los Metales", "Edad Media"], "cole", "2"],
+["¿En qué ciudad griega nació la democracia?", "Atenas", ["Esparta", "Roma", "Troya"], "cole", "2"],
+["¿Cómo llamaban los romanos a la península ibérica?", "Hispania", ["Galia", "Bética", "Al-Ándalus"], "cole", "2"],
+["¿Cómo se llaman las líneas imaginarias que sirven para medir la latitud?", "Paralelos", ["Meridianos", "Husos", "Polos"], "cole", "2"],
+["¿Cuál es el continente más grande?", "Asia", ["África", "América", "Europa"], "cole", "2"],
+["¿Cuál es el río más largo de Europa?", "El Volga", ["El Danubio", "El Rin", "El Tajo"], "cole", "2"],
+["Completa: «There ___ two cats»", "are", ["is", "am", "be"], "cole", "2"],
+["¿Cuál es el comparativo de «big»?", "Bigger", ["More big", "Biggest", "Bigest"], "cole", "2"],
+["¿Qué significa «Wednesday»?", "Miércoles", ["Martes", "Jueves", "Sábado"], "cole", "2"],
+["Completa: «She ___ TV every day»", "watches", ["watch", "watching", "watched"], "cole", "2"],
+["Si 2x + 3 = 11, ¿cuánto vale x?", "4", ["5", "7", "3"], "cole", "2"],
+["¿Qué dice el teorema de Pitágoras?", "a² + b² = c²", ["a + b = c", "a × b = c²", "a² − b² = c"], "cole", "2"],
+["Si los catetos miden 3 y 4, ¿cuánto mide la hipotenusa?", "5", ["7", "6", "12"], "cole", "2"],
+["¿Cuánto es el 10 % de 350?", "35", ["3,5", "350", "70"], "cole", "2"],
+["Si 3 kg cuestan 6 €, ¿cuánto cuestan 5 kg?", "10 €", ["8 €", "12 €", "15 €"], "cole", "2"],
+["¿Cuánto es 2 elevado a 5?", "32", ["10", "25", "16"], "cole", "2"],
+["¿Cómo se calcula el área de un círculo?", "π · r²", ["2 · π · r", "π · d", "r²"], "cole", "2"],
+["¿Qué tipo de oración es «¿Vienes mañana?»?", "Interrogativa", ["Exclamativa", "Enunciativa", "Imperativa"], "cole", "2"],
+["¿Cuál es el complemento directo en «Juan come una manzana»?", "una manzana", ["Juan", "come", "No tiene"], "cole", "2"],
+["¿Quién escribió «Platero y yo»?", "Juan Ramón Jiménez", ["Federico García Lorca", "Antonio Machado", "Gustavo Adolfo Bécquer"], "cole", "2"],
+["¿Qué es una hipérbole?", "Una exageración", ["Una comparación", "Una repetición", "Un sonido"], "cole", "2"],
+["¿Cuál de estas palabras es esdrújula?", "Música", ["Canción", "Reloj", "Casa"], "cole", "2"],
+["¿Qué tipo de oración es «¡Cierra la puerta!»?", "Imperativa", ["Interrogativa", "Dubitativa", "Desiderativa"], "cole", "2"],
+["¿Cuál es la fórmula química del agua?", "H₂O", ["CO₂", "O₂", "NaCl"], "cole", "2"],
+["¿Cuál es el símbolo químico del oro?", "Au", ["Ag", "Or", "Go"], "cole", "2"],
+["¿En qué unidad se mide la fuerza?", "En newtons", ["En julios", "En vatios", "En kilogramos"], "cole", "2"],
+["¿A qué velocidad viaja más o menos la luz?", "300.000 km/s", ["300 km/s", "3.000 km/h", "30.000 km/s"], "cole", "2"],
+["¿Qué partícula del átomo tiene carga negativa?", "El electrón", ["El protón", "El neutrón", "El núcleo"], "cole", "2"],
+["¿Cómo se llaman las células que no tienen núcleo?", "Procariotas", ["Eucariotas", "Animales", "Vegetales"], "cole", "2"],
+["¿En qué parte de la célula vegetal se hace la fotosíntesis?", "En los cloroplastos", ["En las mitocondrias", "En el núcleo", "En los ribosomas"], "cole", "2"],
+["¿En qué año cayó el Imperio romano de Occidente?", "476", ["1492", "711", "1000"], "cole", "2"],
+["¿En qué año llegaron los musulmanes a la península ibérica?", "711", ["476", "1492", "1212"], "cole", "2"],
+["¿Quiénes terminaron la Reconquista en 1492?", "Los Reyes Católicos", ["Felipe II", "Carlos V", "Alfonso X"], "cole", "2"],
+["¿Qué estilo tiene arcos de medio punto y muros muy gruesos?", "El románico", ["El gótico", "El barroco", "El renacentista"], "cole", "2"],
+["¿Qué estilo tiene vidrieras de colores y arcos apuntados?", "El gótico", ["El románico", "El neoclásico", "El mudéjar"], "cole", "2"],
+["¿Qué era un feudo en la Edad Media?", "Las tierras de un señor", ["Un tipo de castillo", "Un impuesto del rey", "Un barco de guerra"], "cole", "2"],
+["¿Qué ciudad fue la capital del califato de Al-Ándalus?", "Córdoba", ["Granada", "Sevilla", "Toledo"], "cole", "2"],
+["¿Cuál es el pasado de «buy»?", "Bought", ["Buyed", "Brought", "Buy"], "cole", "2"],
+["Completa: «I have ___ to London»", "been", ["be", "was", "went"], "cole", "2"],
+["¿Qué significa «however»?", "Sin embargo", ["Además", "Porque", "Entonces"], "cole", "2"],
+["¿Cuál es el superlativo de «good»?", "The best", ["The goodest", "Better", "The most good"], "cole", "2"],
+["¿Cuánto es 9 × 6?", "54", ["56", "45", "63"], "cole", "1"],
+["¿Cuánto es 1.000 − 375?", "625", ["725", "675", "635"], "cole", "1"],
+["¿Cuántos minutos tiene una hora?", "60", ["100", "30", "24"], "cole", "1"],
+["¿Cuántos gramos tiene un kilo?", "1.000", ["100", "10", "500"], "cole", "1"],
+["¿Cuál es el doble de 45?", "90", ["80", "85", "95"], "cole", "1"],
+["¿Cómo se llama el resultado de una multiplicación?", "Producto", ["Suma", "Cociente", "Resta"], "cole", "1"],
+["¿Cómo se llama el resultado de una división?", "Cociente", ["Producto", "Dividendo", "Sumando"], "cole", "1"],
+["¿Cuántos lados tiene un pentágono?", "5", ["4", "6", "8"], "cole", "1"],
+["¿Cuál es el plural de «lápiz»?", "Lápices", ["Lápizes", "Lápiz", "Lápizs"], "cole", "1"],
+["¿Qué tipo de palabra es «bonito»?", "Adjetivo", ["Sustantivo", "Verbo", "Adverbio"], "cole", "1"],
+["¿Cuál de estas palabras es un artículo?", "El", ["Casa", "Muy", "Correr"], "cole", "1"],
+["¿Cuál es el femenino de «actor»?", "Actriz", ["Actora", "Actresa", "Actriza"], "cole", "1"],
+["¿Qué signo se pone al principio de una pregunta?", "¿", ["?", "¡", "«"], "cole", "1"],
+["¿Cuál es el diminutivo de «casa»?", "Casita", ["Casona", "Casucha", "Casaza"], "cole", "1"],
+["¿Cuántas patas tiene un insecto?", "6", ["8", "4", "10"], "cole", "1"],
+["¿Cuántas patas tiene una araña?", "8", ["6", "10", "4"], "cole", "1"],
+["¿Qué órganos usamos para respirar?", "Los pulmones", ["El corazón", "El estómago", "Los riñones"], "cole", "1"],
+["¿Cuál es el satélite natural de la Tierra?", "La Luna", ["El Sol", "Marte", "Venus"], "cole", "1"],
+["¿Cuál de estos animales es un mamífero?", "El delfín", ["El tiburón", "La rana", "El pingüino"], "cole", "1"],
+["¿Cuántos sentidos tenemos?", "5", ["4", "6", "3"], "cole", "1"],
+["¿Qué necesitan las plantas para vivir?", "Luz, agua y aire", ["Solo tierra", "Solo agua", "Oscuridad"], "cole", "1"],
+["¿Cuál es la capital de Castilla-La Mancha?", "Toledo", ["Albacete", "Ciudad Real", "Cuenca"], "cole", "1"],
+["¿En qué continente está España?", "Europa", ["África", "Asia", "América"], "cole", "1"],
+["¿Cuál es la capital de Portugal?", "Lisboa", ["Oporto", "Coímbra", "Faro"], "cole", "1"],
+["¿Qué mar baña la costa de Valencia?", "El Mediterráneo", ["El Cantábrico", "El Atlántico", "El mar Negro"], "cole", "1"],
+["¿En qué isla está el Teide?", "Tenerife", ["Mallorca", "Gran Canaria", "Ibiza"], "cole", "1"],
+["¿Cómo se dice «gato» en inglés?", "Cat", ["Dog", "Mouse", "Cow"], "cole", "1"],
+["¿Qué significa «apple»?", "Manzana", ["Pera", "Plátano", "Naranja"], "cole", "1"],
+["¿Cómo se dice «siete» en inglés?", "Seven", ["Six", "Nine", "Eleven"], "cole", "1"],
+["¿Qué significa «brother»?", "Hermano", ["Padre", "Primo", "Abuelo"], "cole", "1"],
+["¿Cuánto es 0,5 × 10?", "5", ["0,05", "50", "5,5"], "cole", "1"],
+["¿Qué fracción es igual a 0,5?", "1/2", ["1/5", "5/1", "2/5"], "cole", "1"],
+["¿Cuántos grados tiene una vuelta completa?", "360", ["180", "90", "100"], "cole", "1"],
+["¿Cuál es el perímetro de un cuadrado de 5 cm de lado?", "20 cm", ["25 cm", "10 cm", "15 cm"], "cole", "1"],
+["¿Cuánto es 144 ÷ 12?", "12", ["14", "11", "10"], "cole", "1"],
+["¿Cuántos litros tiene un kilolitro?", "1.000", ["100", "10", "10.000"], "cole", "1"],
+["¿Qué número es la C en números romanos?", "100", ["50", "500", "1.000"], "cole", "1"],
+["¿Cuál es la media de 4, 6 y 8?", "6", ["5", "7", "18"], "cole", "1"],
+["¿Qué es un sinónimo?", "Una palabra que significa lo mismo que otra", ["Una palabra que significa lo contrario", "Una palabra que rima", "Una palabra muy larga"], "cole", "1"],
+["¿Qué tipo de palabra es «nosotros»?", "Pronombre", ["Artículo", "Adjetivo", "Verbo"], "cole", "1"],
+["¿En qué persona está «comemos»?", "Primera persona del plural", ["Tercera del singular", "Segunda del plural", "Primera del singular"], "cole", "1"],
+["¿Cuál de estas palabras es llana?", "Árbol", ["Canción", "Pájaro", "Sofá"], "cole", "1"],
+["¿Cómo se llama quien cuenta la historia en un cuento?", "Narrador", ["Protagonista", "Lector", "Ilustrador"], "cole", "1"],
+["¿Qué es una comparación o símil?", "Decir que algo es como otra cosa", ["Una exageración", "Un sonido", "Una pregunta"], "cole", "1"],
+["¿Cuál es el infinitivo de «tuvimos»?", "Tener", ["Tuver", "Tuvir", "Estar"], "cole", "1"],
+["¿Qué hueso protege el cerebro?", "El cráneo", ["La columna", "Las costillas", "El fémur"], "cole", "1"],
+["¿Cómo se llama el paso del agua líquida a gas?", "Evaporación", ["Congelación", "Condensación", "Fusión"], "cole", "1"],
+["¿Cómo se llama la energía que viene del viento?", "Eólica", ["Solar", "Geotérmica", "Nuclear"], "cole", "1"],
+["¿Cuál es el hueso más largo del cuerpo?", "El fémur", ["La tibia", "El húmero", "El radio"], "cole", "1"],
+["¿Qué lleva la sangre por todo el cuerpo?", "Oxígeno y nutrientes", ["Solo agua", "Aire", "Huesos"], "cole", "1"],
+["¿Cómo se llama el movimiento de la Tierra alrededor del Sol?", "Traslación", ["Rotación", "Gravitación", "Eclipse"], "cole", "1"],
+["¿Cuánto tarda la Tierra en dar una vuelta sobre sí misma?", "24 horas", ["365 días", "12 horas", "1 mes"], "cole", "1"],
+["¿Cuál es la capital de Italia?", "Roma", ["Milán", "Venecia", "Nápoles"], "cole", "1"],
+["¿En qué continente está Egipto?", "África", ["Asia", "Europa", "Oceanía"], "cole", "1"],
+["¿Quién fue el primer emperador romano?", "Augusto", ["Julio César", "Nerón", "Trajano"], "cole", "1"],
+["¿En qué año empezó la Guerra Civil española?", "1936", ["1939", "1931", "1975"], "cole", "1"],
+["¿Cómo se llama el Parlamento de España?", "Las Cortes Generales", ["El Palacio Real", "La Moncloa", "El Tribunal Supremo"], "cole", "1"],
+["¿Cuántos países forman la Unión Europea?", "27", ["28", "25", "30"], "cole", "1"],
+["¿Qué significa «never»?", "Nunca", ["Siempre", "A veces", "Pronto"], "cole", "1"],
+["¿Cuál es el plural de «child»?", "Children", ["Childs", "Childrens", "Childes"], "cole", "1"],
+["¿Qué significa «tomorrow»?", "Mañana (el día siguiente)", ["Ayer", "Hoy", "Esta noche"], "cole", "1"],
+["Completa: «They ___ playing football»", "are", ["is", "am", "be"], "cole", "1"],
+["¿Cuánto es (−8) ÷ 2?", "−4", ["4", "−6", "−10"], "cole", "2"],
+["¿Cuánto es 12 al cuadrado?", "144", ["24", "124", "121"], "cole", "2"],
+["¿Cuál es la raíz cuadrada de 144?", "12", ["14", "11", "72"], "cole", "2"],
+["¿Cuánto son 3/5 de 50?", "30", ["15", "35", "25"], "cole", "2"],
+["¿Cuál es el opuesto de −7?", "7", ["−7", "0", "1/7"], "cole", "2"],
+["¿Cuánto es 10 elevado a 3?", "1.000", ["30", "100", "10.000"], "cole", "2"],
+["¿Cuántos centímetros cuadrados tiene un metro cuadrado?", "10.000", ["100", "1.000", "1.000.000"], "cole", "2"],
+["¿Qué es un polígono regular?", "El que tiene todos los lados y ángulos iguales", ["El que tiene 4 lados", "El que no tiene ángulos", "El que tiene lados curvos"], "cole", "2"],
+["¿Qué es la rima consonante?", "Cuando coinciden vocales y consonantes al final del verso", ["Cuando solo coinciden las vocales", "Cuando los versos no riman", "Cuando se repite el mismo verso"], "cole", "2"],
+["¿Qué es un verso de arte menor?", "El que tiene ocho sílabas o menos", ["El que tiene más de ocho", "El que no rima", "El que está en prosa"], "cole", "2"],
+["¿Qué es una fábula?", "Un cuento con animales y una moraleja", ["Una poesía de amor", "Una obra de teatro", "Una noticia"], "cole", "2"],
+["¿Cuál es el núcleo del sujeto en «Las niñas altas juegan»?", "niñas", ["Las", "altas", "juegan"], "cole", "2"],
+["¿Cuál de estas palabras es un determinante posesivo?", "Mi", ["Yo", "Este", "Un"], "cole", "2"],
+["¿Qué es un diptongo?", "Dos vocales juntas en la misma sílaba", ["Dos consonantes juntas", "Una sílaba sin vocal", "Dos palabras unidas"], "cole", "2"],
+["¿Quién acompaña a don Quijote en sus aventuras?", "Sancho Panza", ["Dulcinea", "Rocinante", "El Lazarillo"], "cole", "2"],
+["¿Cómo se llama la capa más interna de la Tierra?", "Núcleo", ["Corteza", "Manto", "Litosfera"], "cole", "2"],
+["¿Cómo se llama la capa de gases que rodea la Tierra?", "La atmósfera", ["La hidrosfera", "La geosfera", "La biosfera"], "cole", "2"],
+["¿Qué tipo de animal es la rana?", "Anfibio", ["Reptil", "Mamífero", "Pez"], "cole", "2"],
+["¿Cuál es la estrella más cercana a la Tierra?", "El Sol", ["La estrella Polar", "Sirio", "La Luna"], "cole", "2"],
+["¿Por qué hay estaciones en el año?", "Por la inclinación del eje de la Tierra", ["Por la distancia a la Luna", "Por las nubes", "Por el viento"], "cole", "2"],
+["¿Qué mineral es el más duro?", "El diamante", ["El yeso", "El talco", "El cuarzo"], "cole", "2"],
+["¿A qué grupo pertenecen la ballena y el delfín?", "Mamíferos", ["Peces", "Anfibios", "Reptiles"], "cole", "2"],
+["¿Qué ciudad fundó Rómulo según la leyenda?", "Roma", ["Atenas", "Cartago", "Esparta"], "cole", "2"],
+["¿Quién fue Alejandro Magno?", "Un rey de Macedonia que conquistó un gran imperio", ["Un emperador romano", "Un faraón egipcio", "Un filósofo de Atenas"], "cole", "2"],
+["¿Qué marca el paso de la Prehistoria a la Historia?", "La invención de la escritura", ["El descubrimiento del fuego", "La agricultura", "La rueda"], "cole", "2"],
+["¿Cuál es el río más largo de África?", "El Nilo", ["El Congo", "El Níger", "El Zambeze"], "cole", "2"],
+["¿En qué continente está la cordillera de los Andes?", "América", ["Asia", "Europa", "África"], "cole", "2"],
+["¿Cuál es la montaña más alta del mundo?", "El Everest", ["El K2", "El Kilimanjaro", "El Aconcagua"], "cole", "2"],
+["¿Qué dios griego era el rey del Olimpo?", "Zeus", ["Poseidón", "Hades", "Apolo"], "cole", "2"],
+["¿Qué significa «yesterday»?", "Ayer", ["Mañana", "Hoy", "Siempre"], "cole", "2"],
+["Completa: «He ___ got a dog»", "has", ["have", "is", "does"], "cole", "2"],
+["¿Cuál es el pasado de «eat»?", "Ate", ["Eated", "Eaten", "Eat"], "cole", "2"],
+["¿Qué significa «expensive»?", "Caro", ["Barato", "Grande", "Rápido"], "cole", "2"],
+["Si 3x = 21, ¿cuánto vale x?", "7", ["18", "24", "6"], "cole", "2"],
+["¿Cuánto es (x + 2) + (x + 3)?", "2x + 5", ["x + 5", "2x + 6", "5x"], "cole", "2"],
+["¿Cuánto es el 25 % de 80?", "20", ["25", "40", "16"], "cole", "2"],
+["¿Cuánto es 3² + 4²?", "25", ["49", "14", "12"], "cole", "2"],
+["¿Cuánto mide cada ángulo de un triángulo equilátero?", "60 grados", ["90 grados", "45 grados", "180 grados"], "cole", "2"],
+["¿Cuál es el volumen de un cubo de 2 cm de lado?", "8 cm³", ["6 cm³", "4 cm³", "12 cm³"], "cole", "2"],
+["Si un coche va a 60 km/h, ¿cuánto recorre en 2 horas?", "120 km", ["60 km", "30 km", "180 km"], "cole", "2"],
+["¿Cómo es la gráfica de una función lineal?", "Una línea recta", ["Una curva", "Un círculo", "No tiene gráfica"], "cole", "2"],
+["¿Qué indica un complemento circunstancial?", "El lugar, el tiempo o el modo de la acción", ["Quién hace la acción", "Lo que recibe la acción", "El verbo principal"], "cole", "2"],
+["¿Qué tipo de sustantivo es «rebaño»?", "Colectivo", ["Propio", "Abstracto", "Individual"], "cole", "2"],
+["¿Qué tipo de sustantivo es «alegría»?", "Abstracto", ["Concreto", "Colectivo", "Propio"], "cole", "2"],
+["¿Qué es una personificación?", "Dar cualidades humanas a cosas o animales", ["Exagerar mucho", "Repetir sonidos", "Comparar con «como»"], "cole", "2"],
+["¿Quién escribió «La casa de Bernarda Alba»?", "Federico García Lorca", ["Antonio Machado", "Miguel de Unamuno", "Lope de Vega"], "cole", "2"],
+["¿Cuál es la pasiva de «Ana escribe la carta»?", "La carta es escrita por Ana", ["Ana es escrita por la carta", "La carta escribe a Ana", "Ana escribió la carta"], "cole", "2"],
+["¿Qué es un texto argumentativo?", "El que defiende una opinión con razones", ["El que cuenta un cuento", "El que da instrucciones", "El que describe un paisaje"], "cole", "2"],
+["¿Cuál es el símbolo químico del hierro?", "Fe", ["Hi", "Ir", "F"], "cole", "2"],
+["¿Cuál es el símbolo químico del sodio?", "Na", ["So", "S", "Sd"], "cole", "2"],
+["¿Qué partícula del átomo no tiene carga?", "El neutrón", ["El protón", "El electrón", "El ion"], "cole", "2"],
+["¿En qué unidad se mide la energía?", "En julios", ["En newtons", "En metros", "En voltios"], "cole", "2"],
+["¿Cómo se calcula la velocidad?", "Espacio dividido entre tiempo", ["Tiempo por espacio", "Masa por aceleración", "Fuerza entre masa"], "cole", "2"],
+["¿Qué parte de la célula produce la energía?", "La mitocondria", ["El cloroplasto", "El núcleo", "La membrana"], "cole", "2"],
+["¿A qué temperatura se congela el agua?", "0 °C", ["−10 °C", "4 °C", "32 °C"], "cole", "2"],
+["¿Qué es una mezcla homogénea?", "Una en la que no se distinguen sus componentes", ["Una en la que se ven trozos", "Un elemento puro", "Siempre un gas"], "cole", "2"],
+["¿Quién era Carlomagno?", "Un emperador de los francos", ["Un rey de Castilla", "Un califa de Córdoba", "Un papa"], "cole", "2"],
+["¿Qué monumento de Granada construyeron los nazaríes?", "La Alhambra", ["La Mezquita", "La Giralda", "El Escorial"], "cole", "2"],
+["¿Qué es el Camino de Santiago?", "Una ruta de peregrinación desde la Edad Media", ["Un río", "Una batalla", "Un castillo"], "cole", "2"],
+["¿En qué batalla de 1212 vencieron los reinos cristianos?", "Las Navas de Tolosa", ["Covadonga", "Guadalete", "Lepanto"], "cole", "2"],
+["¿A qué rey de Castilla llamaban «el Sabio»?", "Alfonso X", ["Fernando III", "Pedro I", "Sancho IV"], "cole", "2"],
+["¿Qué grupo de la sociedad feudal se dedicaba a rezar?", "El clero", ["La nobleza", "Los campesinos", "Los artesanos"], "cole", "2"],
+["¿Cómo se llama la población que vive en ciudades?", "Población urbana", ["Población rural", "Población nómada", "Población emigrante"], "cole", "2"],
+["Completa: «If it rains, I ___ stay at home»", "will", ["would", "am", "did"], "cole", "2"],
+["¿Cuál es el participio de «write»?", "Written", ["Wrote", "Writed", "Writing"], "cole", "2"],
+["¿Qué significa «although»?", "Aunque", ["Porque", "Entonces", "Además"], "cole", "2"],
+["Completa: «I was watching TV when the phone ___»", "rang", ["ring", "rings", "ringing"], "cole", "2"],
+["¿Cuál es el pasado de «think»?", "Thought", ["Thinked", "Thank", "Thinks"], "cole", "2"]];
+const CATS=[["canc", "Canciones"], ["mc", "Minecraft"], ["pk", "Pokémon"], ["hp", "Harry Potter"], ["cole", "Cole"]];
+const LVLS=[["1", "Fácil"], ["2", "Difícil"]];
+const LENS=[5,10,15,20];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
+let cfg=load('total-cfg',{cats:CATS.map(c=>c[0]),lvls:["1", "2"],len:10,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=10;
+let st=null;
+function chips(el,list,isOn,toggle){
+  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
+}
+const pool=()=>ALL.filter(s=>cfg.cats.includes(s.c)&&cfg.lvls.includes(s.l));
+function renderSetup(){
+  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
+  const all=()=>CATS.every(c=>cfg.cats.includes(c[0]));
+  chips($('cats'),[["all","Todos los temas"],...CATS],k=>k==='all'?all():cfg.cats.includes(k),k=>{if(k==='all')cfg.cats=all()?[]:CATS.map(c=>c[0]);else tg(cfg.cats,k)});
+  chips($('lvls'),LVLS,k=>cfg.lvls.includes(k),k=>tg(cfg.lvls,k));
+  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
+  const n=pool().length;
+  $('count').textContent=n?`Hay ${n} preguntas disponibles con estos ajustes.`:'Elige al menos un tema y una dificultad.';
+  save('total-cfg',cfg);
+}
+const board=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function start(){
+  if(st)clearTimeout(st.timer);
+  $('codebar').hidden=true;
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('total-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  const p=pool();
+  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
+  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
+  const need=per*players.length;
+  let seen=load('total-seen',[]);
+  const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
+  if(fresh.length<need){seen=[];save('total-seen',seen)}
+  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,per};
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+function show(){
+  const s=st.q[st.i],n=st.players.length;
+  board();
+  $('turn').textContent=n>1?`Le toca a ${st.players[st.turn]}`:'';
+  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Pregunta ${st.i+1} de ${st.q.length}`;
+  $('cat').textContent=CATS.find(c=>c[0]===s.c)[1]+' · '+LVLS.find(l=>l[0]===s.l)[1];
+  $('q').textContent=s.q;$('fact').textContent='';$('res').textContent='';$('next').hidden=true;
+  $('opts').innerHTML=(st.code?sshuffle([s.ans,...s.w],rng(st.code*97+st.i)):shuffle([s.ans,...s.w])).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+function answer(b){
+  const s=st.q[st.i],ok=b.dataset.o===s.ans;
+  const seen=load('total-seen',[]);if(!seen.includes(s.q)){seen.push(s.q);save('total-seen',seen)}
+  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
+  if(!ok)b.classList.add('bad');else st.pts[st.turn]++;
+  $('fact').textContent='Respuesta: '+s.ans;
+  $('res').textContent=ok?'¡Correcto! +1 punto':'¡Casi!';
+  const k=$('blk');k.classList.remove('bounce');void k.offsetWidth;if(ok)k.classList.add('bounce');
+  board();
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente');
+  $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
+}
+function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
+  st.i++;st.turn=(st.turn+1)%st.players.length;
+  if(st.i<st.q.length){show();return}
+  $('next').hidden=true;
+  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
+  const tie=r.length>1&&r[0][1]===r[1][1];
+  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
+  $('game').hidden=true;$('end').hidden=false;
+  $('again').hidden=!!st.code;$('codeEnd').hidden=!st.code;
+  if(st.code){$('winner').textContent=`${st.pts[0]} de ${st.q.length} aciertos`;$('rank').innerHTML=`<li><span>Código ${fmt(st.code)}</span><span>¡Comparad los puntos!</span></li>`}
+}
+const enc=()=>{let b=0;CATS.forEach((c,i)=>{if(cfg.cats.includes(c[0]))b|=1<<i});LVLS.forEach((l,i)=>{if(cfg.lvls.includes(l[0]))b|=1<<(5+i)});return b|LENS.indexOf(cfg.len)<<9};
+const dec=b=>{cfg.cats=CATS.filter((c,i)=>b>>i&1).map(c=>c[0]);cfg.lvls=LVLS.filter((l,i)=>b>>(5+i)&1).map(l=>l[0]);cfg.len=LENS[b>>9&3]};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const sshuffle=(a,r)=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>String(n).replace(/(\d{3})(\d{3})/,'$1 $2');
+function playCode(N){
+  const seed=Math.floor(N/2048),b=N%2048;
+  if(!(seed>=50&&seed<=487)){$('codeMsg').textContent='Ese código no es válido. Tiene que tener 6 números.';return}
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());
+  dec(b);renderSetup();
+  const p=pool();
+  if(!p.length){$('codeMsg').textContent='Ese código no es válido.';return}
+  if(st)clearTimeout(st.timer);
+  const q=sshuffle(p,rng(N)).slice(0,Math.min(cfg.len,p.length));
+  st={players:[cfg.names[0]||'Jugador 1'],pts:[0],q,i:0,turn:0,per:q.length,code:N,wait:true,key:s=>s.p?s.p+s.ans:s.q};
+  $('codebar').hidden=false;$('codebar').textContent='Partida con código '+fmt(N);$('codeMsg').textContent='';
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+$('mkCode').onclick=()=>{if(!pool().length){renderSetup();return}playCode((50+Math.floor(Math.random()*438))*2048+enc())};
+$('joinBtn').onclick=()=>playCode(parseInt($('joinCode').value.replace(/\D/g,''),10)||0);
+$('mkCode2').onclick=()=>$('mkCode').click();
+$('joinAgain').onclick=()=>{$('joinCode').value='';$('joinCode').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('joinCode').focus(),400)};
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
+$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
+$('next').onclick=next;$('start').onclick=start;$('again').onclick=start;
+$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('total-cfg',cfg)}));
+
+// ===== Tiempo y puntos por rapidez =====
+const TOTAL=20;let QT=null;
+const cur=()=>st.q[st.i];
+const renderScore=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function stopTimer(){clearTimeout(QT);const b=$('bar');b.style.width=getComputedStyle(b).width;b.style.transition='none'}
+function startQ(){
+  clearTimeout(QT);st.t0=performance.now();
+  const b=$('bar');b.style.transition='none';b.style.width='100%';void b.offsetWidth;
+  b.style.transition=`width ${TOTAL}s linear`;b.style.width='0%';
+  QT=setTimeout(()=>{if(!document.querySelector('.opt:disabled'))answer(null)},TOTAL*1000);
+}
+const _show=show;
+show=function(){
+  clearTimeout(QT);
+  if(!st.hits)st.hits=st.players.map(()=>0);
+  _show();renderScore();
+  const box=$('blk')||$('tape'),hb=$('hintBtn');
+  if((st.players.length>1&&!st.code)||st.wait){
+    $('opts').hidden=true;$('ready').hidden=false;box.hidden=true;if(hb)hb.style.visibility='hidden';
+    $('ready').textContent=st.wait?'Empezar la partida':`${st.players[st.turn]}, pulsa cuando estés listo`;
+    if(st.wait)$('res').textContent=`Código ${fmt(st.code)}. Cuando todos hayáis entrado, pulsad «Empezar».`;
+    const b=$('bar');b.style.transition='none';b.style.width='100%';
+  }else{box.hidden=false;if(hb)hb.style.visibility='';$('opts').hidden=false;$('ready').hidden=true;startQ()}
+};
+$('ready').onclick=()=>{st.wait=false;const hb=$('hintBtn');if(hb)hb.style.visibility='';$('res').textContent='';$('ready').hidden=true;($('blk')||$('tape')).hidden=false;$('opts').hidden=false;startQ()};
+const _answer=answer;
+answer=function(b){
+  stopTimer();
+  const el=(performance.now()-st.t0)/1000,s=cur(),ok=!!b&&b.dataset.o===s.ans;
+  const gain=ok?Math.round(500+500*Math.max(0,1-el/TOTAL)):0;
+  const before=st.pts[st.turn];
+  _answer(b||{dataset:{o:'\u0000'},classList:{add(){}}});
+  st.pts[st.turn]=before+gain;if(ok)st.hits[st.turn]++;
+  renderScore();
+  $('res').textContent=ok?`¡Correcto! +${gain} puntos`:(b?'¡Casi! 0 puntos':'¡Se acabó el tiempo!');
+};
+const _next=next;
+next=function(){
+  clearTimeout(QT);_next();
+  if($('end').hidden)return;
+  const n=st.players.length,per=st.code?st.q.length:st.per;
+  const r=st.players.map((p,i)=>[p,st.pts[i],st.hits[i]]).sort((a,b)=>b[1]-a[1]);
+  if(st.code){
+    $('winner').textContent=`${r[0][1]} puntos`;
+    $('rank').innerHTML=`<li><span>${r[0][2]} de ${per} aciertos</span><span>Código ${fmt(st.code)}</span></li><li style="background:none;justify-content:center">¡Comparad los puntos!</li>`;
+  }else{
+    const tie=n>1&&r[0][1]===r[1][1];
+    $('winner').textContent=n===1?`${r[0][1]} puntos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+    $('rank').innerHTML=r.map(([p,pt,h])=>`<li><span>${esc(p)}</span><span>${pt} puntos · ${h}/${per}</span></li>`).join('');
+  }
+};
+$('next').onclick=next;
+renderSetup();start();
+}
+</script>
+</body>
+</html>
