@@ -79,6 +79,9 @@ a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48
 .duo h2{margin-bottom:6px}
 .join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
 .codebar{font-weight:800;text-align:center;padding:8px 12px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
+.timer{height:12px;border-radius:99px;background:#00000026;overflow:hidden;margin-top:16px}
+.timer i{display:block;height:100%;width:100%;background:#ffc93c;border-radius:99px}
+#ready{width:100%;margin-top:16px;min-height:76px}
 [hidden]{display:none!important}
 @media(max-width:600px){.names,.grid2{grid-template-columns:minmax(0,1fr)}}
 </style>
@@ -105,6 +108,8 @@ a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48
         <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#1c1a2e"/><g class="r"><circle cx="32" cy="32" r="18" fill="#fff7e6"/><g fill="#1c1a2e"><rect x="29" y="15" width="6" height="12" rx="2"/><rect x="29" y="37" width="6" height="12" rx="2"/><rect x="15" y="29" width="12" height="6" rx="2"/><rect x="37" y="29" width="12" height="6" rx="2"/></g></g></svg>
       </div>
     </div>
+    <div class="timer" aria-hidden="true"><i id="bar"></i></div>
+    <button class="go" id="ready" hidden></button>
     <div class="opts" id="opts"></div>
     <p class="res" id="res" aria-live="polite"></p>
     <div class="row">
@@ -600,6 +605,57 @@ $('addForm').addEventListener('submit',e=>{
   save('qpf-mine',mine);e.target.reset();renderMine();renderSetup();
 });
 $('mine').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;mine.splice(+b.dataset.i,1);save('qpf-mine',mine);renderMine();renderSetup()};
+
+// ===== Tiempo y puntos por rapidez =====
+const TOTAL=20;let QT=null;
+const cur=()=>st.q[st.i];
+const renderScore=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function stopTimer(){clearTimeout(QT);const b=$('bar');b.style.width=getComputedStyle(b).width;b.style.transition='none'}
+function startQ(){
+  clearTimeout(QT);st.t0=performance.now();
+  const b=$('bar');b.style.transition='none';b.style.width='100%';void b.offsetWidth;
+  b.style.transition=`width ${TOTAL}s linear`;b.style.width='0%';
+  QT=setTimeout(()=>{if(!document.querySelector('.opt:disabled'))answer(null)},TOTAL*1000);
+}
+const _show=show;
+show=function(){
+  clearTimeout(QT);
+  if(!st.hits)st.hits=st.players.map(()=>0);
+  _show();renderScore();
+  if(st.players.length>1&&!st.code){
+    $('opts').hidden=true;$('ready').hidden=false;
+    $('ready').textContent=`${st.players[st.turn]}, pulsa cuando estés listo`;
+    const b=$('bar');b.style.transition='none';b.style.width='100%';
+  }else{$('opts').hidden=false;$('ready').hidden=true;startQ()}
+};
+$('ready').onclick=()=>{$('ready').hidden=true;$('opts').hidden=false;startQ()};
+const _answer=answer;
+answer=function(b){
+  stopTimer();
+  const el=(performance.now()-st.t0)/1000,s=cur(),ok=!!b&&b.dataset.o===s.ans;
+  const gain=ok?Math.round(500+500*Math.max(0,1-el/TOTAL)):0;
+  const before=st.pts[st.turn];
+  _answer(b||{dataset:{o:'\u0000'},classList:{add(){}}});
+  st.pts[st.turn]=before+gain;if(ok)st.hits[st.turn]++;
+  renderScore();
+  $('res').textContent=ok?`¡Correcto! +${gain} puntos`:(b?'¡Casi! 0 puntos':'¡Se acabó el tiempo!');
+};
+const _next=next;
+next=function(){
+  clearTimeout(QT);_next();
+  if($('end').hidden)return;
+  const n=st.players.length,per=st.code?st.q.length:st.per;
+  const r=st.players.map((p,i)=>[p,st.pts[i],st.hits[i]]).sort((a,b)=>b[1]-a[1]);
+  if(st.code){
+    $('winner').textContent=`${r[0][1]} puntos`;
+    $('rank').innerHTML=`<li><span>${r[0][2]} de ${per} aciertos</span><span>Código ${fmt(st.code)}</span></li><li style="background:none;justify-content:center">¡Comparad los puntos!</li>`;
+  }else{
+    const tie=n>1&&r[0][1]===r[1][1];
+    $('winner').textContent=n===1?`${r[0][1]} puntos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+    $('rank').innerHTML=r.map(([p,pt,h])=>`<li><span>${esc(p)}</span><span>${pt} puntos · ${h}/${per}</span></li>`).join('');
+  }
+};
+$('next').onclick=next;
 renderSetup();renderMine();start();
 }
 </script>
