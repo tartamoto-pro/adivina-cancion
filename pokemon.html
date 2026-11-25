@@ -290,15 +290,15 @@ const Q=[
 ["¿Cuántas generaciones de Pokémon había hasta Escarlata y Púrpura?","9",["7","8","10"],"juegos",2]];
 const CATS=[["pkmn","Pokémon y evoluciones"],["tipos","Tipos y combates"],["anime","Anime y entrenadores"],["juegos","Juegos y regiones"]];
 const LVLS=[["1","Fácil"],["2","Difícil"]];
-const LENS=[3,5,8,10];
+const LENS=[5,10,15,20];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
-let cfg=load('pk-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:5,names:["Jugador 1","Jugador 2","",""]});
-if(!LENS.includes(cfg.len))cfg.len=5;
+let cfg=load('pk-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:10,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=10;
 let st=null;
 function chips(el,list,isOn,toggle){
   el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');

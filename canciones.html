@@ -471,7 +471,7 @@ const mk=(a,l)=>a.map(([p,ans,w,ar,y])=>({p,ans,w,ar,y,l}));
 const BASE=[...mk(ES,'es'),...mk(EN,'en')];
 const ERAS=[["80","Años 80",1980,1989],["90","Años 90",1990,1999],["00","2000",2000,2009],["10","2010 hasta hoy",2010,2100]];
 const LANGS=[["es","En español"],["en","En inglés"],["mine","Mis frases"]];
-const LENS=[3,5,8,10];
+const LENS=[5,10,15,20];
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -479,8 +479,8 @@ const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}
 const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
 
 let mine=load('qpf-mine',[]);
-let cfg=load('qpf-cfg',{eras:["80","90","00","10"],langs:["es","mine"],len:5,v:2,names:["Jugador 1","Jugador 2","",""]});
-if(!LENS.includes(cfg.len))cfg.len=5;
+let cfg=load('qpf-cfg',{eras:["80","90","00","10"],langs:["es","mine"],len:10,v:2,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=10;
 if(cfg.v!==2){cfg.langs=cfg.langs.filter(l=>l!=='en');if(!cfg.langs.includes('es'))cfg.langs.push('es');cfg.v=2}
 let st=null;
 
