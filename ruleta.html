@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La ruleta en casa</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: concurso de sábado en el salón, alegre y con emoción
+   IDEA: el panel de letras y la ruleta de colores de un plató
+   PICTURE: la ruleta grande con su flecha y el panel de casillas verdes y blancas
+   COLOUR and TYPE: morado plató, casillas verdes y blancas, ruleta de muchos colores; Fredoka + Nunito
+   LAYOUT: marcador, panel con su pista, ruleta y botones de acción, teclado de letras; ajustes debajo */
+:root{color-scheme:light dark;--bg:#f3effa;--on:#1e1636;--panel:#fff;--muted:#625a80;--studio:#3b1f7a;--studio2:#29145a;--cell:#2e9e5b;--cell2:#1f7a43;--gold:#ffd23f;--gold2:#c99a1f;--ink:#1e1636;--red:#e2463c}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#120c22;--on:#f1ecff;--panel:#211839;--muted:#b3a9d6}}
+:root[data-theme=dark]{--bg:#120c22;--on:#f1ecff;--panel:#211839;--muted:#b3a9d6}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Fredoka,Nunito,sans-serif;font-weight:700;line-height:1.1;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,12px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(24px,6vw,36px)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 14px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.ghost{background:var(--studio);color:#fff;font-weight:800}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 16px;border-radius:12px}
+.go{background:var(--gold);color:var(--ink);font-family:Fredoka;font-weight:700;font-size:19px;box-shadow:0 5px 0 var(--gold2)}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pl{flex:1 1 140px;background:var(--panel);border-radius:12px;padding:8px 12px;font-weight:800;border:3px solid transparent;box-shadow:0 2px 0 #0002}
+.pl.now{border-color:var(--gold);background:var(--studio);color:#fff}
+.pl small{display:block;font-weight:600;opacity:.85}
+.pl b{font-family:Fredoka;font-size:22px}
+.studio{background:var(--studio);color:#fff;border-radius:22px;padding:14px;box-shadow:0 8px 0 var(--studio2)}
+.top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:800;margin-bottom:10px}
+.clue{background:var(--gold);color:var(--ink);border-radius:999px;padding:2px 14px;font-family:Fredoka}
+.board{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 16px;padding:12px 6px;background:#00000033;border-radius:14px}
+.w{display:flex;gap:4px}
+.c{width:clamp(24px,7.4vw,40px);height:clamp(34px,9.6vw,52px);border-radius:6px;display:grid;place-items:center;font-family:Fredoka;font-weight:700;font-size:clamp(18px,5.6vw,30px);background:var(--cell);border:2px solid var(--cell2)}
+.c.l{background:#fff;color:var(--ink);border-color:#d6d0e8}
+.c.p{background:transparent;border-color:transparent;width:auto}
+.c.flash{animation:fl .6s ease}
+@keyframes fl{0%{background:var(--gold)}100%{background:#fff}}
+.mid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center;margin-top:14px}
+.wheelbox{position:relative;max-width:300px;width:100%;justify-self:center;aspect-ratio:1}
+.wheelbox svg{width:100%;height:100%;display:block}
+#wheel{transition:transform 3.2s cubic-bezier(.12,.75,.2,1);transform-origin:50% 50%}
+.ptr{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:30px solid var(--gold);filter:drop-shadow(0 3px 0 #0005)}
+.acts{display:grid;gap:10px}
+.acts button{width:100%}
+.light{background:#ffffff26;color:#fff;font-weight:800}
+.state{font-family:Fredoka;font-size:20px;text-align:center;min-height:56px;margin:12px 0 4px}
+.state b{color:var(--gold)}
+.keys{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;margin-top:8px}
+.k{min-height:46px;padding:0;font-family:Fredoka;font-weight:700;font-size:20px;background:#fff;color:var(--ink)}
+.k.v{background:#ffe9a8}
+.k.used{opacity:.25}
+.solve{display:flex;gap:8px;margin-top:10px}.solve input{flex:1}.solve button{flex:none}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:22px;margin-bottom:8px}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:inherit;padding:8px 12px}
+.studio input{border-color:#ffffff66;color:#fff}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--studio);color:#fff;border-color:var(--studio)}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--gold);color:var(--ink)}
+[hidden]{display:none!important}
+@media(max-width:600px){.mid{grid-template-columns:minmax(0,1fr)}.wheelbox{max-width:240px}.names{grid-template-columns:minmax(0,1fr)}.keys{grid-template-columns:repeat(7,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>La ruleta en casa</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="toSetup">Ajustes</button></span>
+  </header>
+
+  <section id="game">
+    <div class="score" id="score"></div>
+    <div class="studio">
+      <div class="top"><span id="rlabel"></span><span class="clue" id="clue"></span></div>
+      <div class="board" id="board"></div>
+      <div class="mid">
+        <div class="wheelbox"><div class="ptr"></div><svg viewBox="-110 -110 220 220" aria-label="Ruleta"><g id="wheel"></g><circle r="14" fill="#fff" stroke="#29145a" stroke-width="4"/></svg></div>
+        <div class="acts">
+          <button class="go" id="spin">Girar la ruleta</button>
+          <button class="light" id="buyV">Comprar vocal (50 €)</button>
+          <button class="light" id="solveB">Resolver el panel</button>
+        </div>
+      </div>
+      <p class="state" id="state" aria-live="polite"></p>
+      <div class="keys" id="keys"></div>
+      <div class="solve" id="solveBox" hidden><input id="solveIn" autocomplete="off" placeholder="Escribe la solución"><button class="go" id="solveOk">Resolver</button><button class="light" id="solveNo">Cancelar</button></div>
+      <button class="go" id="nextRound" hidden style="width:100%;margin-top:12px"></button>
+    </div>
+  </section>
+
+  <section id="end" hidden>
+    <div class="studio" style="text-align:center"><h2 id="winner" style="font-size:32px;padding:14px 0"></h2></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Paneles por partida</label>
+    <div class="chips" id="rounds"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note">En tu turno: gira la ruleta y di una consonante (ganas lo que marque por cada vez que aparezca), compra una vocal por 50 € o resuelve. Si fallas, pasa el turno. La Quiebra te deja a 0 en ese panel. Quien resuelve se guarda el dinero del panel (mínimo 100 €); los demás lo pierden.</p>
+  </section>
+  <p class="note">Juego hecho en casa inspirado en los concursos de ruleta de la tele; no es oficial. El dinero es de mentira.</p>
+</div>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const P={
+"Refrán":["MÁS VALE TARDE QUE NUNCA","A QUIEN MADRUGA DIOS LE AYUDA","NO HAY MAL QUE POR BIEN NO VENGA","EN BOCA CERRADA NO ENTRAN MOSCAS","PERRO LADRADOR POCO MORDEDOR","CAMARÓN QUE SE DUERME SE LO LLEVA LA CORRIENTE","DIME CON QUIÉN ANDAS Y TE DIRÉ QUIÉN ERES","A CABALLO REGALADO NO LE MIRES EL DIENTE","OJOS QUE NO VEN CORAZÓN QUE NO SIENTE","MÁS VALE PÁJARO EN MANO QUE CIENTO VOLANDO","AL MAL TIEMPO BUENA CARA","NO DEJES PARA MAÑANA LO QUE PUEDAS HACER HOY","AGUA QUE NO HAS DE BEBER DÉJALA CORRER","DE TAL PALO TAL ASTILLA","POCO A POCO SE VA LEJOS","LA PRÁCTICA HACE AL MAESTRO","UNA GOLONDRINA NO HACE VERANO","HABLANDO SE ENTIENDE LA GENTE","MÁS VALE PREVENIR QUE CURAR","EN ABRIL AGUAS MIL","QUIEN ROMPE PAGA","EL QUE LA SIGUE LA CONSIGUE"],
+"Comida":["TORTILLA DE PATATAS","GAZPACHO ANDALUZ","PAELLA VALENCIANA","CHURROS CON CHOCOLATE","GACHAS MANCHEGAS","QUESO MANCHEGO","PISTO MANCHEGO","BOCADILLO DE CALAMARES","CROQUETAS DE JAMÓN","LENTEJAS CON CHORIZO","ARROZ CON LECHE","FLAN DE HUEVO","PATATAS BRAVAS","ENSALADA MIXTA","PIZZA CUATRO QUESOS","MACARRONES CON TOMATE","SOPA DE FIDEOS","HUEVOS FRITOS CON PATATAS","MIGUELITOS DE LA RODA","MAGDALENAS CASERAS"],
+"Animal":["OSO POLAR","ELEFANTE AFRICANO","PINGÜINO EMPERADOR","CABALLITO DE MAR","TIBURÓN BLANCO","ÁGUILA REAL","LINCE IBÉRICO","MARIQUITA","JIRAFA","CANGURO","MURCIÉLAGO","TORTUGA MARINA","PEZ PAYASO","LOBO IBÉRICO","COCODRILO","HIPOPÓTAMO","ARDILLA ROJA","DELFÍN MULAR"],
+"Lugar de España":["CHINCHILLA DE MONTEARAGÓN","CATEDRAL DE SANTIAGO","LA ALHAMBRA DE GRANADA","SAGRADA FAMILIA","PLAZA MAYOR DE MADRID","CIUDAD DE LAS ARTES Y LAS CIENCIAS","MEZQUITA DE CÓRDOBA","ACUEDUCTO DE SEGOVIA","LAGUNAS DE RUIDERA","NACIMIENTO DEL RÍO MUNDO","CASTILLO DE ALMANSA","ISLAS CANARIAS","PICOS DE EUROPA","SIERRA NEVADA","CIUDAD ENCANTADA","CASAS COLGADAS DE CUENCA","FERIA DE ALBACETE"],
+"Película":["EL REY LEÓN","BUSCANDO A NEMO","TOY STORY","FROZEN","LA BELLA Y LA BESTIA","LA SIRENITA","EL LIBRO DE LA SELVA","PARQUE JURÁSICO","REGRESO AL FUTURO","SOLO EN CASA","LOS INCREÍBLES","DEL REVÉS","CÓMO ENTRENAR A TU DRAGÓN","MI VILLANO FAVORITO","CHARLIE Y LA FÁBRICA DE CHOCOLATE"],
+"Cosas de casa":["LAVADORA","MANDO DE LA TELE","CEPILLO DE DIENTES","SOFÁ DEL SALÓN","MESA DE LA COCINA","FRIGORÍFICO","MICROONDAS","ALFOMBRA","ESPEJO DEL BAÑO","LÁMPARA DE LA MESILLA","PERCHERO","ARMARIO EMPOTRADO","PERSIANA","TENDEDERO"],
+"Profesión":["BOMBERO","ASTRONAUTA","PROFESORA DE MÚSICA","CONDUCTOR DE AUTOBÚS","MÉDICO DE FAMILIA","INSTALADOR DE GAS","CARPINTERO","PANADERA","VETERINARIO","PELUQUERO","FONTANERO","ELECTRICISTA","CAMARERA","PILOTO DE AVIÓN"],
+"Deporte":["PARTIDO DE FÚTBOL","BALONCESTO","NATACIÓN","TENIS DE MESA","CICLISMO","SALTO DE LONGITUD","CARRERA DE RELEVOS","FÚTBOL SALA","PATINAJE SOBRE HIELO","GIMNASIA RÍTMICA","VOLEIBOL DE PLAYA","BALONMANO"],
+"Cuento":["CAPERUCITA ROJA","LOS TRES CERDITOS","BLANCANIEVES Y LOS SIETE ENANITOS","EL GATO CON BOTAS","HANSEL Y GRETEL","PULGARCITO","LA CENICIENTA","EL PATITO FEO","RICITOS DE ORO","PINOCHO","ALADINO Y LA LÁMPARA MARAVILLOSA","LA BELLA DURMIENTE"]};
+const PANELS=[];for(const k in P)for(const t of P[k])PANELS.push({cat:k,t});
+const SEG=[100,50,200,25,'QUIEBRA',150,75,100,'PIERDE TURNO',50,250,25,100,75,500,50];
+const COLS=['#e2463c','#2e9e5b','#2342b8','#ff9f43','#111','#8e44ad','#16a085','#d35400','#f1c40f','#c0392b','#3b1f7a','#27ae60','#2980b9','#e67e22','#ffd23f','#9b59b6'];
+const CONS='BCDFGHJKLMNÑPQRSTVWXYZ'.split(''),VOWS='AEIOU'.split('');
+const norm=ch=>ch==='Ñ'?'Ñ':ch.normalize('NFD').replace(/[̀-ͯ]/g,'');
+const isL=ch=>/[A-ZÑÁÉÍÓÚÜ]/.test(ch);
+const ROUNDS=[3,5,8];
+let cfg=load('rul-cfg',{names:["Jugador 1","Jugador 2","",""],rounds:5});
+if(!ROUNDS.includes(cfg.rounds))cfg.rounds=5;
+let st=null,rot=0,busy=false;
+
+/* ruleta */
+(function drawWheel(){const n=SEG.length,a=2*Math.PI/n;let h='';
+  SEG.forEach((v,i)=>{const a0=(i-.5)*a-Math.PI/2,a1=(i+.5)*a-Math.PI/2,R=104;
+    const x0=R*Math.cos(a0),y0=R*Math.sin(a0),x1=R*Math.cos(a1),y1=R*Math.sin(a1);
+    h+=`<path d="M0 0L${x0.toFixed(2)} ${y0.toFixed(2)}A${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}Z" fill="${COLS[i]}" stroke="#fff" stroke-width="1.5"/>`;
+    const txt=typeof v==='number'?v:(v==='QUIEBRA'?'QUIEBRA':'PIERDE');const dark=['#ffd23f','#f1c40f','#ff9f43'].includes(COLS[i]);
+    h+=`<text transform="rotate(${i*360/n}) translate(0 -66) rotate(90)" text-anchor="middle" dominant-baseline="middle" font-family="Fredoka,sans-serif" font-weight="700" font-size="${typeof v==='number'?15:9}" fill="${dark?'#1e1636':'#fff'}">${txt}</text>`});
+  h+='<circle r="104" fill="none" stroke="#ffd23f" stroke-width="5"/>';$('wheel').innerHTML=h})();
+
+/* panel */
+function drawBoard(flash=''){const s=st.panel;
+  $('board').innerHTML=s.t.split(' ').map(w=>`<span class="w">${[...w].map(ch=>{if(!isL(ch))return `<span class="c p">${esc(ch)}</span>`;
+    const shown=st.shown.has(norm(ch));return `<span class="c${shown?' l':''}${shown&&flash===norm(ch)?' flash':''}">${shown?ch:''}</span>`}).join('')}</span>`).join('');
+  $('clue').textContent=s.cat}
+const hidden=()=>[...st.panel.t].filter(ch=>isL(ch)&&!st.shown.has(norm(ch)));
+const consLeft=()=>hidden().some(ch=>!VOWS.includes(norm(ch)));
+function score(){$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.p?' now':''}">${esc(n)}<small>Este panel: <b>${st.round[i]} €</b> · Total: ${st.bank[i]} €</small></div>`).join('')}
+function keys(mode){$('keys').innerHTML=[...CONS,...VOWS].map(l=>{const v=VOWS.includes(l),used=st.used.has(l),ok=(mode==='c'&&!v)||(mode==='v'&&v);
+  return `<button class="k${v?' v':''}${used?' used':''}" data-l="${l}" ${ok&&!used?'':'disabled'}>${l}</button>`}).join('');st.mode=mode}
+function setTurn(msg){st.mode=null;keys(null);score();busy=false;
+  const p=st.players[st.p];$('state').innerHTML=(msg?msg+'<br>':'')+`Le toca a <b>${esc(p)}</b>`;
+  $('spin').disabled=!consLeft();$('buyV').disabled=st.round[st.p]<50||!hidden().some(ch=>VOWS.includes(norm(ch)));$('solveB').disabled=false;
+  ['spin','buyV','solveB'].forEach(id=>$(id).hidden=false);$('solveBox').hidden=true;$('nextRound').hidden=true}
+function nextPlayer(msg){st.p=(st.p+1)%st.players.length;setTurn(msg)}
+function lockActs(){['spin','buyV','solveB'].forEach(id=>$(id).disabled=true)}
+
+$('spin').onclick=()=>{if(busy)return;busy=true;lockActs();$('state').textContent='Girando…';
+  const n=SEG.length,i=Math.floor(Math.random()*n),deg=360/n;
+  const target=-(i*deg)+(Math.random()-.5)*deg*.6;rot=rot-((rot%360)+360)%360+360*5+((target%360)+360)%360;
+  $('wheel').style.transform=`rotate(${rot}deg)`;
+  setTimeout(()=>{const v=SEG[i];
+    if(v==='QUIEBRA'){st.round[st.p]=0;nextPlayer('¡QUIEBRA! Pierdes el dinero de este panel.');return}
+    if(v==='PIERDE TURNO'){nextPlayer('¡Pierde turno!');return}
+    st.val=v;keys('c');$('state').innerHTML=`<b>${v} €</b> por letra. Elige una consonante.`},3300)};
+$('buyV').onclick=()=>{if(busy)return;st.round[st.p]-=50;score();lockActs();keys('v');$('state').textContent='Elige una vocal.'};
+$('keys').onclick=e=>{const b=e.target.closest('.k');if(!b||b.disabled||!st.mode)return;const l=b.dataset.l,mode=st.mode;
+  st.used.add(l);const n=[...st.panel.t].filter(ch=>isL(ch)&&norm(ch)===l).length;st.shown.add(l);drawBoard(l);
+  if(!n){nextPlayer(`No hay ninguna ${l}.`);return}
+  if(mode==='c')st.round[st.p]+=n*st.val;
+  if(!hidden().length){win(`¡Panel completo!`);return}
+  setTurn(`¡Hay ${n} ${l}!${mode==='c'?` +${n*st.val} €`:''}`)};
+$('solveB').onclick=()=>{lockActs();keys(null);$('solveBox').hidden=false;$('solveIn').value='';$('state').textContent='Escribe la solución completa.';setTimeout(()=>$('solveIn').focus(),50)};
+$('solveNo').onclick=()=>setTurn('');
+const clean=s=>[...s.toUpperCase()].map(norm).filter(ch=>/[A-ZÑ]/.test(ch)).join('');
+$('solveOk').onclick=()=>{if(clean($('solveIn').value)===clean(st.panel.t))win('¡Correcto!');else nextPlayer('No es correcto.')};
+$('solveIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('solveOk').click()});
+function win(msg){for(const ch of st.panel.t)if(isL(ch))st.shown.add(norm(ch));drawBoard();
+  const gain=Math.max(100,st.round[st.p]);st.bank[st.p]+=gain;st.round=st.round.map(()=>0);score();keys(null);
+  $('state').innerHTML=`${msg} <b>${esc(st.players[st.p])}</b> se lleva <b>${gain} €</b>.`;
+  ['spin','buyV','solveB'].forEach(id=>$(id).hidden=true);$('solveBox').hidden=true;
+  $('nextRound').hidden=false;$('nextRound').textContent=st.r+1<st.panels.length?'Siguiente panel':'Ver resultados'}
+$('nextRound').onclick=()=>{st.r++;if(st.r<st.panels.length){startPanel();return}
+  $('game').hidden=true;$('end').hidden=false;const r=st.players.map((n,i)=>[n,st.bank[i]]).sort((a,b)=>b[1]-a[1]);
+  $('winner').textContent=r.length===1?`${r[0][1]} €`:(r[0][1]===r[1][1]?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} €</span></li>`).join('')};
+function startPanel(){st.panel=st.panels[st.r];st.shown=new Set();st.used=new Set();st.round=st.players.map(()=>0);
+  st.p=st.r%st.players.length;$('rlabel').textContent=`Panel ${st.r+1} de ${st.panels.length}`;drawBoard();setTurn('')}
+
+function start(){cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('rul-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  let seen=load('rul-seen',[]);let fresh=PANELS.filter(p=>!seen.includes(p.t));if(fresh.length<cfg.rounds){seen=[];fresh=PANELS.slice()}
+  for(let i=fresh.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[fresh[i],fresh[j]]=[fresh[j],fresh[i]]}
+  const panels=fresh.slice(0,cfg.rounds);save('rul-seen',seen.concat(panels.map(p=>p.t)));
+  st={players,bank:players.map(()=>0),panels,r:0};$('end').hidden=true;$('game').hidden=false;startPanel();window.scrollTo({top:0,behavior:'smooth'})}
+function renderSetup(){cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  $('rounds').innerHTML=ROUNDS.map(n=>`<button type="button" class="chip" data-n="${n}" aria-pressed="${cfg.rounds===n}">${n} paneles</button>`).join('');save('rul-cfg',cfg)}
+$('rounds').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cfg.rounds=+b.dataset.n;renderSetup()};
+$('start').onclick=start;$('again').onclick=start;$('toSetup').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{if(st&&st.r===0&&st.used&&!st.used.size&&!busy)start()}));
+renderSetup();start();
+}
+</script>
+</body>
+</html>
