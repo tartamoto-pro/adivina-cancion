@@ -448,7 +448,7 @@ function start(){
   const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
   if(fresh.length<need){seen=[];save('cole-seen',seen)}
   const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
-  st={players,pts:players.map(()=>0),q,i:0,turn:0,per};
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,wait:true,per};
   $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
 }
 function show(){
@@ -535,10 +535,11 @@ show=function(){
   if((st.players.length>1&&!st.code)||st.wait){
     $('opts').hidden=true;$('ready').hidden=false;box.hidden=true;if(hb)hb.style.visibility='hidden';
     $('ready').textContent=st.wait?'Empezar la partida':`${st.players[st.turn]}, pulsa cuando estés listo`;
-    if(st.wait)$('res').textContent=`Código ${fmt(st.code)}. Cuando todos hayáis entrado, pulsad «Empezar».`;
+    if(st.wait)$('res').textContent=st.code?`Código ${fmt(st.code)}. Cuando todos hayáis entrado, pulsad «Empezar».`:(st.players.length>1?`Empieza ${st.players[0]}. Pulsad cuando estéis listos.`:'Pulsa «Empezar» cuando estés listo.');
     const b=$('bar');b.style.transition='none';b.style.width='100%';
   }else{box.hidden=false;if(hb)hb.style.visibility='';$('opts').hidden=false;$('ready').hidden=true;startQ()}
 };
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{if(st&&!st.code&&st.wait&&st.i===0)start()}));
 $('ready').onclick=()=>{st.wait=false;const hb=$('hintBtn');if(hb)hb.style.visibility='';$('res').textContent='';$('ready').hidden=true;($('blk')||$('tape')).hidden=false;$('opts').hidden=false;startQ()};
 const _answer=answer;
 answer=function(b){
