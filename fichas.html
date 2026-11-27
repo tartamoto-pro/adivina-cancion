@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Destapa las fichas</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: juego de mesa rápido y alegre para dos
+   IDEA: un tapete de juego con fichas boca abajo que se dan la vuelta
+   PICTURE: la cuadrícula de fichas de madera y las dos bandejas de cada equipo
+   COLOUR and TYPE: tapete verde, fichas color madera, equipo rojo y equipo azul; Fredoka + Nunito
+   LAYOUT: las dos bandejas arriba con su progreso, el turno, el tablero; ajustes debajo */
+:root{color-scheme:light dark;--bg:#eef4ef;--on:#17231b;--panel:#fff;--muted:#5b6b60;--felt:#1f6b45;--felt2:#17543a;--wood:#e9c48b;--wood2:#b98c4f;--a:#e2463c;--b:#2b5fd9;--gold:#ffd23f}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1611;--on:#eaf2ec;--panel:#1a2620;--muted:#a7b8ad}}
+:root[data-theme=dark]{--bg:#0e1611;--on:#eaf2ec;--panel:#1a2620;--muted:#a7b8ad}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Fredoka,sans-serif;font-weight:700;line-height:1.1;margin:0}
+.wrap{max-width:640px;margin:0 auto;padding:clamp(16px,4vw,32px) max(4vw,12px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(26px,6vw,36px)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 14px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.ghost{background:var(--felt);color:#fff;font-weight:800}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 16px;border-radius:12px}
+.go{background:var(--gold);color:#1e1a0a;font-family:Fredoka;font-weight:700;font-size:20px;box-shadow:0 5px 0 #c99a1f;width:100%}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.team{background:var(--panel);border-radius:14px;padding:10px 12px;border:3px solid transparent;box-shadow:0 2px 0 #0002}
+.team.now{border-color:currentColor}
+.team.a{color:var(--a)}.team.b{color:var(--b)}
+.team h2{font-size:20px}
+.team small{display:block;color:var(--muted);font-weight:700}
+.bar{height:12px;border-radius:99px;background:#0001;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:currentColor;border-radius:99px;transition:width .4s}
+.tray{display:flex;flex-wrap:wrap;gap:2px;margin-top:6px;min-height:26px;font-size:20px;line-height:1}
+.turn{text-align:center;font-family:Fredoka;font-size:22px;min-height:62px;margin:6px 0 10px}
+.turn b.a{color:var(--a)}.turn b.b{color:var(--b)}
+.felt{background:var(--felt);border-radius:20px;padding:12px;box-shadow:0 8px 0 var(--felt2)}
+.board{display:grid;gap:8px}
+.t{aspect-ratio:1;perspective:600px;background:none;padding:0;border-radius:10px;min-height:0}
+.t .in{display:block;position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.t.open .in{transform:rotateY(180deg)}
+.t .f,.t .k{position:absolute;inset:0;border-radius:10px;display:grid;place-items:center;backface-visibility:hidden}
+.t .k{background:var(--wood);box-shadow:inset 0 -5px 0 var(--wood2);font:700 clamp(18px,5vw,26px) Fredoka,sans-serif;color:#8a6233}
+.t .f{transform:rotateY(180deg);font-size:clamp(26px,8vw,40px);background:#fff;border:4px solid}
+.t .f.a{border-color:var(--a)}.t .f.b{border-color:var(--b)}
+.t.gone{visibility:hidden}
+@media(prefers-reduced-motion:reduce){.t .in{transition:none}}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:22px;margin-bottom:8px}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+.panel input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--felt);color:#fff;border-color:var(--felt)}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+.win{text-align:center;margin-top:12px}
+.win h2{font-size:30px;margin-bottom:10px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>Destapa las fichas</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="toSetup">Ajustes</button></span></header>
+  <div class="teams">
+    <div class="team a" id="ta"><h2 id="na"></h2><small id="ga"></small><div class="bar"><i id="ba"></i></div><div class="tray" id="tra"></div></div>
+    <div class="team b" id="tb"><h2 id="nb"></h2><small id="gb"></small><div class="bar"><i id="bb"></i></div><div class="tray" id="trb"></div></div>
+  </div>
+  <p class="turn" id="turn" aria-live="polite"></p>
+  <div class="felt"><div class="board" id="board"></div></div>
+  <div class="win" id="win" hidden><h2 id="winT"></h2><button class="go" id="again">Jugar otra vez</button></div>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores</label>
+    <div class="names"><input id="p0" maxlength="14" aria-label="Jugador de los animales"><input id="p1" maxlength="14" aria-label="Jugador de las frutas"></div>
+    <label>Tamaño del tablero</label>
+    <div class="chips" id="sizes"></div>
+    <button class="go" id="start">Empezar con estos ajustes</button>
+    <p class="note">Uno juega con los animales y el otro con las frutas. En tu turno destapas una ficha: si es tuya, te la quedas y vuelves a tirar; si es del otro, se la queda él y le toca a él. Gana quien complete antes todo su grupo. Cada partida empieza un jugador distinto.</p>
+  </section>
+</div>
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ICONS={a:['🐶','🐱','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐢','🐙','🐳'],b:['🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🫐','🍈','🥑']};
+const SIZES=[[16,4],[24,4],[36,6]];
+let cfg=load('fichas-cfg',{names:['Jugador 1','Jugador 2'],size:24,first:0});
+if(!SIZES.some(s=>s[0]===cfg.size))cfg.size=24;
+let st=null,busy=false;
+function renderSetup(){$('p0').value=cfg.names[0];$('p1').value=cfg.names[1];
+  $('sizes').innerHTML=SIZES.map(([n])=>`<button type="button" class="chip" data-n="${n}" aria-pressed="${cfg.size===n}">${n} fichas</button>`).join('');save('fichas-cfg',cfg)}
+$('sizes').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cfg.size=+b.dataset.n;renderSetup()};
+function start(){cfg.names=[$('p0').value.trim()||'Jugador 1',$('p1').value.trim()||'Jugador 2'];
+  const [n,cols]=SIZES.find(s=>s[0]===cfg.size),half=n/2;
+  const tiles=[...ICONS.a.slice(0,half).map(i=>({g:'a',i})),...ICONS.b.slice(0,half).map(i=>({g:'b',i}))];
+  for(let i=tiles.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[tiles[i],tiles[j]]=[tiles[j],tiles[i]]}
+  st={tiles,half,turn:cfg.first?'b':'a',got:{a:[],b:[]},over:false};cfg.first=1-cfg.first;save('fichas-cfg',cfg);
+  $('board').style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  $('board').innerHTML=tiles.map((t,k)=>`<button class="t" data-k="${k}" aria-label="Ficha ${k+1}"><span class="in"><span class="k">?</span><span class="f ${t.g}">${t.i}</span></span></button>`).join('');
+  $('win').hidden=true;busy=false;draw('');window.scrollTo({top:0,behavior:'smooth'})}
+const nm=g=>cfg.names[g==='a'?0:1];
+function draw(msg){for(const g of ['a','b']){$('n'+g).textContent=nm(g);$('g'+g).textContent=`${g==='a'?'Animales':'Frutas'} · ${st.got[g].length} de ${st.half}`;
+    $('b'+g).style.width=(st.got[g].length/st.half*100)+'%';$('tr'+g).textContent=st.got[g].join('');$('t'+g).classList.toggle('now',st.turn===g&&!st.over)}
+  if(!st.over)$('turn').innerHTML=(msg?msg+'<br>':'')+`Le toca a <b class="${st.turn}">${esc(nm(st.turn))}</b>`}
+$('board').onclick=e=>{const b=e.target.closest('.t');if(!b||busy||st.over||b.classList.contains('open'))return;busy=true;
+  const t=st.tiles[+b.dataset.k];b.classList.add('open');
+  setTimeout(()=>{st.got[t.g].push(t.i);b.classList.add('gone');
+    if(st.got[t.g].length===st.half){st.over=true;draw('');$('turn').innerHTML=`<b class="${t.g}">¡${esc(nm(t.g))} ha completado ${t.g==='a'?'los animales':'las frutas'}!</b>`;
+      $('winT').textContent=`¡Gana ${nm(t.g)}!`;$('win').hidden=false;busy=false;return}
+    if(t.g===st.turn)draw(`¡${t.i} es tuya! Vuelve a tirar.`);
+    else{const who=st.turn;st.turn=t.g;draw(`${t.i} era de ${esc(nm(t.g))}.`)}
+    busy=false},900)};
+$('start').onclick=start;$('again').onclick=start;$('toSetup').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+renderSetup();start();
+}
+</script>
+</body>
+</html>
