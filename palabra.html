@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>La palabra del día</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: reto diario tranquilo y limpio, para toda la familia
+   IDEA: una rejilla de fichas que cambian de color como un crucigrama que responde
+   PICTURE: la rejilla de 6 filas por 5 casillas y el teclado con la Ñ
+   COLOUR and TYPE: verde acierto, amarillo mostaza, gris pizarra sobre blanco; Fredoka + Nunito
+   LAYOUT: título, rejilla centrada, mensaje, teclado abajo; estadísticas al acabar */
+:root{color-scheme:light dark;--bg:#ffffff;--on:#1c1f26;--muted:#6b7180;--line:#d3d6dc;--key:#e3e6ea;--green:#3a9a4a;--yellow:#d6a72b;--grey:#7a7f88;--blue:#2342b8}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#121317;--on:#eef0f4;--muted:#a2a8b5;--line:#3a3d45;--key:#2f323a;--grey:#4a4e57}}
+:root[data-theme=dark]{--bg:#121317;--on:#eef0f4;--muted:#a2a8b5;--line:#3a3d45;--key:#2f323a;--grey:#4a4e57}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+.wrap{max-width:520px;margin:0 auto;padding:16px 10px 30px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+h1{font:700 clamp(24px,6vw,32px)/1.1 Fredoka,sans-serif;margin:0}
+button,a.btn{font:inherit;cursor:pointer;border:0;border-radius:10px;min-height:44px;padding:8px 14px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button:focus-visible,a:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.ghost{background:var(--blue);color:#fff}
+.mode{display:flex;gap:8px;justify-content:center;margin:12px 0 4px;flex-wrap:wrap}
+.mode button{background:var(--key);color:var(--on)}
+.mode button[aria-pressed=true]{background:var(--blue);color:#fff}
+.sub{text-align:center;color:var(--muted);margin:0 0 10px;font-size:15px}
+.grid{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;width:min(330px,100%);margin:0 auto}
+.row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.row.shake{animation:sh .4s}
+@keyframes sh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.cell{aspect-ratio:1;border:2px solid var(--line);display:grid;place-items:center;font:700 clamp(26px,8vw,34px) Fredoka,sans-serif;text-transform:uppercase}
+.cell.f{border-color:var(--muted)}
+.cell.g,.cell.y,.cell.x{color:#fff;border-color:transparent}
+.row.anim .cell{animation:flip .45s ease both}
+.cell.g{background:var(--green)}.cell.y{background:var(--yellow)}.cell.x{background:var(--grey)}
+@keyframes flip{0%{transform:rotateX(90deg)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.cell{animation:none!important}.row.shake{animation:none}}
+.msg{min-height:30px;text-align:center;font-weight:800;margin:10px 0}
+.kb{display:grid;gap:6px;margin-top:6px}
+.kr{display:flex;gap:5px;justify-content:center}
+.k{flex:1 1 0;min-width:0;min-height:54px;padding:0;border-radius:8px;background:var(--key);color:var(--on);font:700 18px Fredoka,sans-serif;text-transform:uppercase}
+.k.wide{flex:1.6 1 0;font-size:14px}
+.k.g{background:var(--green);color:#fff}.k.y{background:var(--yellow);color:#fff}.k.x{background:var(--grey);color:#fff}
+.end{border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:12px;text-align:center}
+.end h2{font:700 24px Fredoka,sans-serif;margin:0 0 8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.stats b{display:block;font:700 28px Fredoka,sans-serif}
+.stats span{font-size:13px;color:var(--muted)}
+.dist{display:grid;gap:4px;text-align:left;margin:8px 0 12px}
+.dist div{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px}
+.dist i{display:block;height:22px;background:var(--grey);color:#fff;font-style:normal;border-radius:4px;padding:0 8px;min-width:24px;text-align:right;line-height:22px}
+.dist i.me{background:var(--green)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.acts button{background:var(--green);color:#fff}
+.help{font-size:14px;color:var(--muted);margin-top:16px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>La palabra del día</h1><a class="btn ghost" href="./">← Inicio</a></header>
+  <div class="mode"><button id="mDay" aria-pressed="true">Palabra del día</button><button id="mPrac" aria-pressed="false">Práctica</button></div>
+  <p class="sub" id="sub"></p>
+  <div class="grid" id="grid"></div>
+  <p class="msg" id="msg" aria-live="polite"></p>
+  <div class="end" id="end" hidden>
+    <h2 id="endTitle"></h2>
+    <div class="stats" id="stats"></div>
+    <div class="dist" id="dist"></div>
+    <div class="acts"><button id="share">Compartir resultado</button><button id="more" style="background:var(--blue)">Jugar una de práctica</button></div>
+  </div>
+  <div class="kb" id="kb"></div>
+  <p class="help">Adivina la palabra de 5 letras en 6 intentos. <b style="color:var(--green)">Verde</b>: letra en su sitio. <b style="color:var(--yellow)">Amarillo</b>: está, pero en otro sitio. <b style="color:var(--grey)">Gris</b>: no está. No hacen falta tildes. Cada día hay una palabra nueva, la misma para toda la familia.</p>
+</div>
+<script>
+{
+const ANS=["salud", "poema", "heroe", "luego", "poner", "lugar", "plaza", "techo", "banco", "tarea", "otros", "camas", "rosas", "cubos", "arena", "canto", "barco", "mundo", "abajo", "bueno", "amiga", "abril", "primo", "cesta", "freno", "selva", "cable", "letra", "sucio", "abrir", "circo", "pasos", "reloj", "pavos", "mango", "sumar", "costa", "claro", "pulga", "novio", "amigo", "hotel", "regla", "caldo", "reina", "calle", "nabos", "mucho", "gordo", "prima", "limon", "lento", "fruta", "ganso", "motor", "flaco", "globo", "salir", "nadar", "trigo", "magia", "ahora", "calor", "burro", "ducha", "pasta", "mesas", "llave", "mapas", "tieso", "bolsa", "pagar", "leona", "aulas", "marzo", "nunca", "viejo", "traje", "joven", "soñar", "fuego", "dedos", "noche", "salsa", "rubio", "mover", "valle", "rampa", "hojas", "jabon", "humor", "marte", "sello", "tarta", "ancla", "pollo", "mando", "junio", "pecho", "lazos", "mitad", "decir", "baile", "patio", "papel", "metro", "playa", "fresa", "libro", "melon", "gafas", "hadas", "reyes", "botas", "feliz", "cielo", "grifo", "pizza", "carro", "humos", "oveja", "listo", "migas", "avion", "tubos", "carne", "cuero", "hielo", "video", "pared", "astro", "salon", "beber", "lejos", "cajas", "porra", "nariz", "antes", "madre", "grano", "bruja", "sueño", "enero", "gallo", "vasos", "traer", "olivo", "vacio", "cebra", "socio", "viaje", "andar", "queso", "lirio", "leche", "obras", "mosca", "robot", "venir", "risas", "arbol", "todos", "juego", "patos", "labio", "museo", "miedo", "rueda", "clase", "pinos", "piano", "radio", "mirar", "barra", "roble", "verde", "zumos", "tallo", "gorro", "hucha", "monte", "nieve", "julio", "nieto", "fuera", "pluma", "jefes", "abeja", "bomba", "tinta", "negro", "truco", "sobre", "avena", "bajar", "tarde", "torre", "arroz", "cisne", "pulpo", "hueso", "lleno", "tocar", "manos", "verso", "sapos", "perro", "coche", "nuevo", "gente", "dulce", "ruido", "huevo", "carta", "cacao", "volar", "largo", "cerdo", "coger", "nubes", "grupo", "panda", "balon", "vista", "campo", "hacer", "notas", "suelo", "lapiz", "junto", "padre", "sofas", "zorro", "brazo", "metal", "araña", "sabor", "nieta", "plata", "horno", "falda", "lunes", "yogur", "malos", "subir", "oreja", "barca", "horas", "polvo", "corto", "aroma", "peine", "silla", "mismo", "tigre", "plato", "ramas", "raton", "ancho", "cerca", "comer", "tazas"];
+const $=id=>document.getElementById(id);
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let VALID=null;
+fetch('palabras.txt').then(r=>r.text()).then(t=>{VALID=new Set(t.split('\n').filter(w=>w.length===5));ANS.forEach(w=>VALID.add(w))}).catch(()=>{});
+const today=new Date();const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const dayNum=Math.floor((Date.UTC(today.getFullYear(),today.getMonth(),today.getDate())-Date.UTC(2026,10,28))/864e5);
+const dayIdx=((dayNum%ANS.length)+ANS.length)%ANS.length;
+let mode='day',G=null;
+function newGame(m){mode=m;$('mDay').setAttribute('aria-pressed',m==='day');$('mPrac').setAttribute('aria-pressed',m==='prac');
+  if(m==='day'){const saved=load('pd-day',null);G=saved&&saved.date===ymd(today)?saved:{date:ymd(today),ans:ANS[dayIdx],rows:[],done:false,won:false};
+    $('sub').textContent=`Palabra n.º ${dayNum+1} · ${today.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'})}`}
+  else{G={ans:ANS[Math.floor(Math.random()*ANS.length)],rows:[],done:false,won:false};$('sub').textContent='Partida de práctica: no cuenta para la racha'}
+  G.cur='';$('msg').textContent='';draw();if(G.done)showEnd(false)}
+function score(guess,ans){const res=Array(5).fill('x'),a=[...ans],g=[...guess];
+  g.forEach((ch,i)=>{if(ch===a[i]){res[i]='g';a[i]=null}});
+  g.forEach((ch,i)=>{if(res[i]==='g')return;const j=a.indexOf(ch);if(j>=0){res[i]='y';a[j]=null}});return res}
+function draw(){let h='';for(let r=0;r<6;r++){const word=G.rows[r]||(r===G.rows.length?G.cur:'');const sc=G.rows[r]?score(G.rows[r],G.ans):null;
+    h+=`<div class="row${r===G.anim?' anim':''}" id="r${r}">`+[0,1,2,3,4].map(i=>`<div class="cell${sc?' '+sc[i]:(word[i]?' f':'')}" style="animation-delay:${i*90}ms">${word[i]||''}</div>`).join('')+'</div>'}
+  $('grid').innerHTML=h;G.anim=-1;
+  const st={};G.rows.forEach(w=>score(w,G.ans).forEach((s,i)=>{const ch=w[i],p=st[ch];if(s==='g'||(s==='y'&&p!=='g')||(!p))st[ch]=s}));
+  const rows=['qwertyuiop','asdfghjklñ','<zxcvbnm>'];
+  $('kb').innerHTML=rows.map(r=>`<div class="kr">${[...r].map(c=>c==='<'?`<button class="k wide" data-k="enter">Enviar</button>`:c==='>'?`<button class="k wide" data-k="del" aria-label="Borrar">⌫</button>`:`<button class="k ${st[c]||''}" data-k="${c}">${c}</button>`).join('')}</div>`).join('');
+  $('kb').hidden=G.done;$('end').hidden=!G.done}
+function msg(t){$('msg').textContent=t}
+function key(k){if(G.done)return;
+  if(k==='del'){G.cur=G.cur.slice(0,-1);draw();return}
+  if(k==='enter'){if(G.cur.length<5){shake();msg('Faltan letras');return}
+    if(VALID&&!VALID.has(G.cur)){shake();msg('No está en el diccionario');return}
+    G.rows.push(G.cur);G.anim=G.rows.length-1;const won=G.cur===G.ans;G.cur='';
+    if(won||G.rows.length===6){G.done=true;G.won=won;if(mode==='day')stats()}
+    if(mode==='day')save('pd-day',Object.assign({},G,{anim:-1}));draw();
+    if(G.done)setTimeout(()=>showEnd(true),600);else msg('');return}
+  if(/^[a-zñ]$/.test(k)&&G.cur.length<5){G.cur+=k;draw();msg('')}}
+function shake(){const r=$('r'+G.rows.length);if(r){r.classList.remove('shake');void r.offsetWidth;r.classList.add('shake')}}
+function stats(){const s=load('pd-stats',{played:0,won:0,streak:0,best:0,dist:[0,0,0,0,0,0],last:null});
+  if(s.last===G.date)return;s.played++;
+  if(G.won){s.won++;s.dist[G.rows.length-1]++;const y=new Date(today);y.setDate(y.getDate()-1);s.streak=(s.lastWin===ymd(y))?s.streak+1:1;s.best=Math.max(s.best,s.streak);s.lastWin=G.date}else s.streak=0;
+  s.last=G.date;save('pd-stats',s)}
+function showEnd(fresh){const praise=['¡Genial!','¡Magnífico!','¡Muy bien!','¡Bien!','¡Por los pelos!','¡Uf, justo!'];
+  $('endTitle').textContent=G.won?`${praise[G.rows.length-1]} Era «${G.ans.toUpperCase()}»`:`La palabra era «${G.ans.toUpperCase()}»`;
+  const s=load('pd-stats',{played:0,won:0,streak:0,best:0,dist:[0,0,0,0,0,0]});
+  $('stats').innerHTML=[[s.played,'Jugadas'],[s.played?Math.round(s.won/s.played*100):0,'% ganadas'],[s.streak,'Racha'],[s.best,'Mejor racha']].map(([n,t])=>`<div><b>${n}</b><span>${t}</span></div>`).join('');
+  const mx=Math.max(1,...s.dist);
+  $('dist').innerHTML=s.dist.map((n,i)=>`<div>${i+1}<i class="${mode==='day'&&G.won&&G.rows.length===i+1?'me':''}" style="width:${Math.max(8,n/mx*100)}%">${n}</i></div>`).join('');
+  $('share').hidden=mode!=='day';$('end').hidden=false;$('kb').hidden=true;msg('')}
+$('kb').onclick=e=>{const b=e.target.closest('.k');if(b)key(b.dataset.k)};
+addEventListener('keydown',e=>{if(e.ctrlKey||e.metaKey||e.altKey)return;const k=e.key.toLowerCase();
+  if(k==='enter'){e.preventDefault();if(document.activeElement)document.activeElement.blur();key('enter')}else if(k==='backspace')key('del');else if(/^[a-zñ]$/.test(k))key(k)});
+$('mDay').onclick=()=>newGame('day');$('mPrac').onclick=()=>newGame('prac');$('more').onclick=()=>newGame('prac');
+$('share').onclick=async()=>{const grid=G.rows.map(w=>score(w,G.ans).map(s=>s==='g'?'🟩':s==='y'?'🟨':'⬜').join('')).join('\n');
+  const txt=`La palabra del día n.º ${dayNum+1}: ${G.won?G.rows.length:'X'}/6\n${grid}`;
+  try{if(navigator.share){await navigator.share({text:txt});return}}catch(e){}
+  try{await navigator.clipboard.writeText(txt);msg('Resultado copiado: pégalo en WhatsApp')}catch(e){msg(txt)}};
+newGame('day');
+}
+</script>
+</body>
+</html>

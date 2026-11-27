@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El rosco</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: final de concurso, tensa pero alegre, se lee de un vistazo
+   IDEA: la rueda de letras: cada letra es una bola que se vuelve verde o roja
+   PICTURE: el rosco grande con el reloj y la letra actual en el centro
+   COLOUR and TYPE: azul noche, bolas azules, acierto verde, fallo rojo, letra actual amarilla; Fredoka + Nunito
+   LAYOUT: marcador, rosco, definición, respuesta y botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:#eaf0fb;--on:#14203d;--panel:#fff;--muted:#5a6482;--night:#0f2350;--ball:#2b5fd9;--ok:#2fb35a;--ko:#e2463c;--cur:#ffd23f;--ink:#14203d}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0a1124;--on:#eef2fb;--panel:#17213d;--muted:#a9b3d0}}
+:root[data-theme=dark]{--bg:#0a1124;--on:#eef2fb;--panel:#17213d;--muted:#a9b3d0}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Fredoka,sans-serif;font-weight:700;line-height:1.1;margin:0}
+.wrap{max-width:640px;margin:0 auto;padding:clamp(16px,4vw,32px) max(4vw,12px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:clamp(26px,6vw,36px)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 14px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--cur);outline-offset:2px}
+.ghost{background:var(--night);color:#fff;font-weight:800}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 16px;border-radius:12px}
+.go{background:var(--cur);color:var(--ink);font-family:Fredoka;font-weight:700;font-size:20px;box-shadow:0 5px 0 #c99a1f}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pl{flex:1 1 140px;background:var(--panel);border-radius:12px;padding:8px 12px;font-weight:800;border:3px solid transparent;box-shadow:0 2px 0 #0002}
+.pl.now{border-color:var(--cur)}
+.pl small{display:block;font-weight:600;color:var(--muted)}
+.codebar{font-weight:800;text-align:center;padding:8px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
+.stage{background:var(--night);color:#fff;border-radius:24px;padding:14px;box-shadow:0 8px 0 #091637}
+.rosco{position:relative;width:min(100%,400px);aspect-ratio:1;margin:0 auto}
+.b{position:absolute;width:12.5%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:700 clamp(15px,4.4vw,22px) Fredoka,sans-serif;background:var(--ball);color:#fff;transform:translate(-50%,-50%);border:3px solid #ffffff55;transition:background .2s,transform .2s}
+.b.ok{background:var(--ok)}.b.ko{background:var(--ko)}
+.b.cur{background:var(--cur);color:var(--ink);transform:translate(-50%,-50%) scale(1.18);border-color:#fff}
+.center{position:absolute;inset:22%;border-radius:50%;display:grid;place-items:center;text-align:center;align-content:center;gap:2px}
+.clock{font:700 clamp(34px,11vw,54px)/1 Fredoka,sans-serif}
+.clock.low{color:var(--ko)}
+.hits{font-weight:800;opacity:.9}
+.def{background:#ffffff14;border-radius:16px;padding:12px 14px;margin-top:12px}
+.def small{display:block;font-weight:800;color:var(--cur)}
+.def p{margin:4px 0 0;font-size:clamp(19px,4.8vw,23px);font-weight:700;line-height:1.3}
+.ansrow{display:flex;gap:8px;margin-top:12px}
+.ansrow input{flex:1;font:inherit;font-size:20px;min-height:52px;border-radius:12px;border:2px solid #ffffff66;background:#ffffff14;color:#fff;padding:8px 12px;text-transform:uppercase}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.pp{background:#2b5fd9;color:#fff;font-family:Fredoka;font-weight:700;font-size:20px;box-shadow:0 5px 0 #173d9a}
+.flash{min-height:28px;text-align:center;font-weight:800;margin:8px 0 0}
+.hand{text-align:center;padding:30px 10px}
+.hand h2{font-size:28px;margin-bottom:6px}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:22px;margin-bottom:8px}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+.panel input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--night);color:#fff;border-color:var(--night)}
+.join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
+.note{font-size:14px;color:var(--muted);margin:10px 0 0}
+.duo{margin-top:20px;padding-top:16px;border-top:2px dashed currentColor}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between;gap:8px}
+.rank li:first-child{background:var(--cur);color:var(--ink)}
+details{background:var(--panel);border-radius:12px;padding:10px 14px;margin:8px 0}
+summary{font-weight:800;cursor:pointer}
+.sol{list-style:none;padding:0;margin:8px 0 0;font-size:15px}
+.sol li{padding:4px 0;border-top:1px solid #8883}
+.sol b.ok{color:var(--ok)}.sol b.ko{color:var(--ko)}.sol b.p{color:var(--muted)}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>El rosco</h1><span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="toSetup">Ajustes</button></span></header>
+
+  <section id="game">
+    <p class="codebar" id="codebar" hidden></p>
+    <div class="score" id="score"></div>
+    <div class="stage">
+      <div class="hand" id="hand"><h2 id="handT"></h2><p id="handS" style="margin:0 0 18px;opacity:.85"></p><button class="go" id="handB" style="width:100%"></button></div>
+      <div id="play" hidden>
+        <div class="rosco" id="rosco"><div class="center"><div class="clock" id="clock"></div><div class="hits" id="hits"></div></div></div>
+        <div class="def"><small id="kind"></small><p id="def"></p></div>
+        <form class="ansrow" id="form" autocomplete="off"><input id="ans" placeholder="Tu respuesta" autocapitalize="characters" spellcheck="false"></form>
+        <div class="btns"><button class="go" id="ok">Responder</button><button class="pp" id="pass">Pasapalabra</button></div>
+        <p class="flash" id="flash" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="end" hidden>
+    <div class="stage" style="text-align:center"><h2 id="winner" style="font-size:32px;padding:14px 0"></h2></div>
+    <ol class="rank" id="rank"></ol>
+    <div id="sols"></div>
+    <button class="go" id="again" style="width:100%;margin-top:10px">Jugar otra vez</button>
+    <div id="codeEnd" hidden><button class="go" id="mkCode2" style="width:100%;margin-top:10px">Crear otra partida con código</button><button class="ghost" id="joinAgain" style="width:100%;margin-top:10px">Unirme con un código nuevo</button></div>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Tiempo de cada jugador</label>
+    <div class="chips" id="times"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note">Cada uno tiene su rosco y su reloj, que solo corre en su turno. Si fallas o dices «Pasapalabra», le toca al siguiente. Las letras pasadas vuelven al final. Gana quien más acierte; si hay empate, quien menos falle. No hacen falta tildes.</p>
+    <div class="duo">
+      <h2>Jugar en varios móviles</h2>
+      <p class="note">Crea una partida y dile el código a los demás. Todos tendréis el mismo rosco. Cada uno juega en su móvil con el nombre del Jugador 1.</p>
+      <button class="go" id="mkCode" style="width:100%;margin-top:10px">Crear partida con código</button>
+      <label for="joinCode">¿Te han dado un código?</label>
+      <div class="join"><input id="joinCode" inputmode="numeric" autocomplete="off" placeholder="Ej.: 123 456"><button class="go" id="joinBtn">Unirse</button></div>
+      <p class="note" id="codeMsg" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="note">Juego hecho en casa inspirado en el rosco de los concursos de la tele; no es oficial. Las definiciones están pensadas para niños y niñas de 9 a 12 años.</p>
+</div>
+<script>
+{
+const DATA={"A": [["E", ["ABEJA"], "Insecto que fabrica miel"], ["E", ["ÁRBOL"], "Planta grande con tronco, ramas y hojas"], ["E", ["AVIÓN"], "Vehículo con alas que lleva pasajeros por el aire"], ["E", ["ARCOÍRIS", "ARCO IRIS"], "Arco de colores que sale en el cielo cuando llueve y hace sol"], ["E", ["ALMOHADA"], "Cojín donde apoyamos la cabeza para dormir"], ["E", ["AGUA"], "Líquido transparente que bebemos y que forma los ríos y los mares"]], "B": [["E", ["BALLENA"], "El animal más grande del mar; es un mamífero"], ["E", ["BOMBERO", "BOMBERA"], "Persona que apaga incendios"], ["E", ["BICICLETA", "BICI"], "Vehículo de dos ruedas que se mueve con pedales"], ["E", ["BRÚJULA"], "Aparato con una aguja que siempre señala el norte"], ["E", ["BIBLIOTECA"], "Lugar donde hay muchos libros para leerlos o llevártelos prestados"], ["E", ["BOSQUE"], "Lugar con muchísimos árboles"]], "C": [["E", ["CARACOL"], "Animal muy lento que lleva su casa a cuestas"], ["E", ["CAMELLO"], "Animal del desierto con dos jorobas"], ["E", ["CASTILLO"], "Edificio antiguo con torres y murallas"], ["E", ["COHETE"], "Nave que despega hacia el espacio"], ["E", ["CEREZA"], "Fruta pequeña y roja que suele ir de dos en dos"], ["E", ["CUMPLEAÑOS"], "Día en el que celebras que tienes un año más"]], "D": [["E", ["DELFÍN"], "Mamífero del mar muy listo que salta entre las olas"], ["E", ["DINOSAURIO"], "Reptil gigante que vivió hace millones de años"], ["E", ["DIENTE"], "Pieza dura de la boca que sirve para morder"], ["E", ["DRAGÓN"], "Animal de leyenda que echa fuego por la boca"], ["E", ["DOMINGO"], "Último día de la semana"], ["E", ["DIBUJO"], "Lo que haces con lápices de colores en un papel"]], "E": [["E", ["ELEFANTE"], "Animal muy grande con trompa y orejas enormes"], ["E", ["ESCALERA"], "Sirve para subir de un piso a otro y tiene peldaños"], ["E", ["ESTRELLA"], "Punto de luz que brilla en el cielo por la noche"], ["E", ["ESCOBA"], "Sirve para barrer el suelo"], ["E", ["ENERO"], "Primer mes del año"], ["E", ["ESPEJO"], "Cristal en el que te ves reflejado"]], "F": [["E", ["FRESA"], "Fruta roja que tiene las semillas por fuera"], ["E", ["FÚTBOL"], "Deporte en el que dos equipos intentan meter goles con un balón"], ["E", ["FARO"], "Torre con una luz que guía a los barcos por la noche"], ["E", ["FLAMENCO"], "Ave rosa que descansa apoyada en una sola pata"], ["E", ["FUEGO"], "Lo que hay en una hoguera: quema y da luz"], ["E", ["FEBRERO"], "El mes más corto del año"]], "G": [["E", ["GATO", "GATA"], "Animal de compañía que maúlla"], ["E", ["GUITARRA"], "Instrumento musical de seis cuerdas"], ["E", ["GLOBO"], "Bolsa de goma que se infla con aire en las fiestas"], ["E", ["GALLINA"], "Ave de granja que pone huevos"], ["E", ["GORRA"], "Prenda para la cabeza con visera"], ["E", ["GUSANO"], "Animal pequeño, blando y alargado que vive en la tierra"]], "H": [["E", ["HELADO"], "Postre muy frío que se toma en verano"], ["E", ["HORMIGA"], "Insecto pequeño que vive en un hormiguero y trabaja en equipo"], ["E", ["HOSPITAL"], "Lugar donde curan a los enfermos"], ["E", ["HUEVO"], "Lo que pone la gallina"], ["E", ["HIELO"], "Agua congelada"], ["E", ["HELICÓPTERO"], "Aparato que vuela gracias a unas hélices que giran encima"]], "I": [["E", ["ISLA"], "Trozo de tierra rodeado de agua por todas partes"], ["E", ["IGLÚ"], "Casa hecha con bloques de hielo"], ["E", ["INVIERNO"], "La estación más fría del año"], ["E", ["IMÁN"], "Objeto que atrae el hierro"], ["E", ["IDIOMA"], "Lengua que habla un pueblo, como el español o el inglés"], ["E", ["INSECTO"], "Animal pequeño con seis patas, como la mosca o la hormiga"]], "J": [["E", ["JIRAFA"], "El animal con el cuello más largo"], ["E", ["JARDÍN"], "Terreno con flores y plantas junto a una casa"], ["E", ["JUEVES"], "Día de la semana que va entre el miércoles y el viernes"], ["E", ["JAMÓN"], "Pata de cerdo curada que se come en lonchas"], ["E", ["JABÓN"], "Sirve para lavarse las manos con agua"], ["E", ["JULIO"], "Mes del verano que va entre junio y agosto"]], "L": [["E", ["LEÓN"], "Animal al que llaman el rey de la selva"], ["E", ["LUNA"], "Satélite de la Tierra que brilla por la noche"], ["E", ["LÁPIZ"], "Sirve para escribir y lo que escribes se puede borrar"], ["E", ["LIBRO"], "Conjunto de hojas que cuentan una historia o explican un tema"], ["E", ["LIMÓN"], "Fruta amarilla y muy ácida"], ["E", ["LLAVE"], "Sirve para abrir y cerrar las puertas"]], "M": [["E", ["MARIPOSA"], "Insecto con alas de colores que antes fue oruga"], ["E", ["MANZANA"], "Fruta redonda que puede ser roja, verde o amarilla"], ["E", ["MÚSICA"], "Arte de combinar sonidos de forma bonita"], ["E", ["MONTAÑA"], "Elevación muy grande del terreno"], ["E", ["MOCHILA"], "Bolsa que se lleva a la espalda para ir al colegio"], ["E", ["MAESTRO", "MAESTRA"], "Persona que enseña en el colegio"]], "N": [["E", ["NARIZ"], "Parte de la cara que sirve para oler"], ["E", ["NIEVE"], "Agua helada que cae del cielo en copos blancos"], ["E", ["NARANJA"], "Fruta con la que se hace zumo por la mañana"], ["E", ["NUBE"], "Está en el cielo y de ella cae la lluvia"], ["E", ["NOVIEMBRE"], "Mes que va justo antes de diciembre"], ["E", ["NIDO"], "Casa de los pájaros, hecha con ramitas"]], "Ñ": [["C", ["ARAÑA"], "Animal de ocho patas que teje telas"], ["C", ["NIÑO", "NIÑA"], "Persona de pocos años"], ["C", ["MAÑANA"], "Parte del día que va antes de la tarde"], ["C", ["UÑA"], "Lo que crece en la punta de los dedos"], ["C", ["CIGÜEÑA"], "Ave grande que hace su nido en lo alto de los campanarios"], ["C", ["SUEÑO"], "Lo que ves mientras duermes"], ["C", ["PEQUEÑO", "PEQUEÑA"], "Lo contrario de grande"]], "O": [["E", ["OSO", "OSA"], "Animal grande y peludo que duerme todo el invierno"], ["E", ["OVEJA"], "Animal de granja que nos da la lana"], ["E", ["OREJA"], "Parte del cuerpo que sirve para oír"], ["E", ["OCÉANO"], "Enorme masa de agua salada, como el Atlántico"], ["E", ["OTOÑO"], "Estación en la que se caen las hojas de los árboles"], ["E", ["ORDENADOR"], "Máquina con pantalla y teclado para trabajar o jugar"]], "P": [["E", ["PINGÜINO"], "Ave que no vuela y vive donde hace mucho frío"], ["E", ["PIRATA"], "Ladrón del mar con parche en el ojo"], ["E", ["PAYASO", "PAYASA"], "Hace reír en el circo con su nariz roja"], ["E", ["PARAGUAS"], "Lo abres cuando llueve para no mojarte"], ["E", ["PIZARRA"], "Donde escribe el profe con tiza o rotulador"], ["E", ["PLÁTANO"], "Fruta amarilla y alargada; las mejores son de Canarias"]], "Q": [["E", ["QUESO"], "Alimento que se hace con leche, como el manchego"], ["E", ["QUINCE"], "Número que va después del catorce"], ["E", ["QUIOSCO", "KIOSCO"], "Puesto pequeño de la calle donde venden periódicos y chucherías"], ["E", ["QUIETO", "QUIETA"], "Que no se mueve nada"], ["C", ["ESQUÍ"], "Deporte que consiste en deslizarse por la nieve"], ["C", ["PARQUE"], "Lugar con columpios, árboles y bancos"], ["C", ["MOSQUITO"], "Insecto pequeño que pica por la noche"]], "R": [["E", ["RATÓN"], "Animal pequeño al que le encanta el queso"], ["E", ["RELOJ"], "Aparato que marca la hora"], ["E", ["ROBOT"], "Máquina que puede moverse y hacer tareas ella sola"], ["E", ["RANA"], "Animal verde que salta y croa"], ["E", ["REINA"], "Esposa del rey"], ["E", ["RÍO"], "Corriente de agua que va hasta el mar"]], "S": [["E", ["SERPIENTE"], "Reptil sin patas que se arrastra"], ["E", ["SOL"], "Estrella que nos da luz y calor"], ["E", ["SIRENA"], "Ser de los cuentos: mitad mujer, mitad pez"], ["E", ["SANDÍA"], "Fruta grande, verde por fuera y roja por dentro"], ["E", ["SILLA"], "Mueble que sirve para sentarse"], ["E", ["SÁBADO"], "Día de la semana que va antes del domingo"]], "T": [["E", ["TORTUGA"], "Animal lento que lleva caparazón"], ["E", ["TIBURÓN"], "Pez grande con muchos dientes afilados"], ["E", ["TELEVISIÓN", "TELE"], "Aparato para ver series, películas y dibujos"], ["E", ["TOMATE"], "Fruto rojo para ensaladas y salsas"], ["E", ["TREN"], "Transporte que va por las vías"], ["E", ["TIJERAS"], "Sirven para cortar papel"]], "U": [["E", ["UVA"], "Fruta pequeña de la que se toman doce en Nochevieja"], ["E", ["UNICORNIO"], "Caballo de leyenda con un cuerno en la frente"], ["E", ["UNIVERSO"], "Todo lo que existe: estrellas, planetas y galaxias"], ["E", ["UNO"], "El primer número para contar"], ["E", ["UNIFORME"], "Ropa igual que llevan todos los de un equipo o colegio"], ["C", ["GRÚA"], "Máquina muy alta que levanta cosas pesadas en las obras"]], "V": [["E", ["VACA"], "Animal que nos da la leche"], ["E", ["VERANO"], "La estación del calor y de las vacaciones"], ["E", ["VOLCÁN"], "Montaña que puede echar lava"], ["E", ["VENTANA"], "Hueco con cristales en la pared por el que entra la luz"], ["E", ["VIOLÍN"], "Instrumento de cuerda que se toca con un arco"], ["E", ["VIERNES"], "Último día de cole de la semana"]], "X": [["C", ["TAXI"], "Coche con conductor que te lleva donde quieras pagando"], ["C", ["EXAMEN"], "Prueba para saber lo que has aprendido"], ["C", ["BOXEO"], "Deporte en el que se pelea con guantes"], ["C", ["SAXOFÓN"], "Instrumento de viento dorado muy usado en el jazz"], ["C", ["EXPLORADOR", "EXPLORADORA"], "Persona que viaja para descubrir lugares nuevos"], ["E", ["XILÓFONO"], "Instrumento de láminas que se golpean con unas baquetas"]], "Y": [["E", ["YOGUR"], "Postre hecho con leche que se toma con cuchara"], ["E", ["YEMA"], "Parte amarilla del huevo"], ["E", ["YATE"], "Barco de lujo"], ["C", ["PLAYA"], "Lugar con arena junto al mar"], ["C", ["RAYO"], "Luz muy fuerte que sale en las tormentas"], ["C", ["MAYO"], "Quinto mes del año"]], "Z": [["E", ["ZAPATO"], "Calzado para los pies"], ["E", ["ZANAHORIA"], "Verdura naranja que les encanta a los conejos"], ["E", ["ZORRO"], "Animal muy astuto con la cola larga"], ["E", ["ZUMO"], "Bebida que se hace exprimiendo la fruta"], ["E", ["ZOOLÓGICO", "ZOO"], "Lugar donde puedes ver animales de todo el mundo"], ["C", ["LAZO"], "Nudo bonito que se hace con una cinta"]]};
+const ORDER=Object.keys(DATA);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const fmt=n=>String(n).replace(/(\d{3})(\d{3})/,'$1 $2');
+const norm=s=>s.toLowerCase().replace(/ñ/g,'\u0000').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\u0000/g,'ñ').replace(/[^a-zñ]/g,'');
+const TIMES=[120,180,240];
+let cfg=load('rosco-cfg',{names:["Jugador 1","Jugador 2","",""],time:180});if(!TIMES.includes(cfg.time))cfg.time=180;
+let st=null,TM=null;
+
+/* bolas del rosco */
+(function(){let h='';ORDER.forEach((l,i)=>{const a=i/ORDER.length*2*Math.PI-Math.PI/2;h+=`<div class="b" id="b${i}" style="left:${50+44*Math.cos(a)}%;top:${50+44*Math.sin(a)}%">${l}</div>`});$('rosco').insertAdjacentHTML('beforeend',h)})();
+
+function makeRosco(seed){const r=rng(seed);return ORDER.map(l=>{const o=DATA[l],x=o[Math.floor(r()*o.length)];return {l,type:x[0],ans:x[1],def:x[2],st:'p',said:''}})}
+const P=()=>st.players[st.c];
+function score(){$('score').innerHTML=st.players.map((p,i)=>`<div class="pl${i===st.c&&!st.over?' now':''}">${esc(p.name)}<small>${p.items.filter(x=>x.st==='ok').length} aciertos · ${p.items.filter(x=>x.st==='ko').length} fallos · ${Math.ceil(p.time)} s</small></div>`).join('')}
+function drawRosco(){const p=P();p.items.forEach((x,i)=>{$('b'+i).className='b'+(x.st!=='p'?' '+x.st:'')+(i===p.pos&&x.st==='p'?' cur':'')});
+  const x=p.items[p.pos];$('kind').textContent=(x.type==='E'?'Empieza por ':'Contiene la ')+x.l+':';$('def').textContent=x.def;
+  $('hits').textContent=p.items.filter(x=>x.st==='ok').length+' aciertos';$('clock').textContent=Math.ceil(p.time);$('clock').classList.toggle('low',p.time<=15)}
+const nextPending=(p,from)=>{for(let k=1;k<=p.items.length;k++){const i=(from+k)%p.items.length;if(p.items[i].st==='p')return i}return -1};
+function handoff(msg){clearInterval(TM);score();
+  const left=st.players.filter(p=>!p.done);if(!left.length){finish();return}
+  if(P().done){let i=st.c;do{i=(i+1)%st.players.length}while(st.players[i].done);st.c=i}
+  if(st.players.length===1||(left.length===1&&!msg)){resume();return}
+  $('play').hidden=true;$('hand').hidden=false;
+  $('handT').textContent=`Le toca a ${P().name}`;$('handS').textContent=(msg?msg+' ':'')+`Le quedan ${Math.ceil(P().time)} segundos.`;
+  $('handB').textContent='¡Vamos!';score()}
+function resume(){$('hand').hidden=true;$('play').hidden=false;const p=P();if(p.items[p.pos].st!=='p')p.pos=nextPending(p,p.pos);
+  drawRosco();score();$('ans').value='';$('flash').textContent='';setTimeout(()=>$('ans').focus(),60);
+  let t0=performance.now();TM=setInterval(()=>{const now=performance.now();p.time-=(now-t0)/1000;t0=now;
+    if(p.time<=0){p.time=0;p.done=true;clearInterval(TM);handoff(`¡Se acabó el tiempo de ${p.name}!`);return}
+    $('clock').textContent=Math.ceil(p.time);$('clock').classList.toggle('low',p.time<=15)},200)}
+function after(kind){const p=P();const nx=nextPending(p,p.pos);
+  if(nx<0){p.done=true;clearInterval(TM);handoff(`¡${p.name} ha terminado su rosco!`);return}
+  p.pos=nx;const others=st.players.some((q,i)=>i!==st.c&&!q.done);
+  if(kind==='ok'||!others){drawRosco();score();$('ans').value='';$('ans').focus();return}
+  clearInterval(TM);let i=st.c;do{i=(i+1)%st.players.length}while(st.players[i].done);
+  const who=p.name;st.c=i;handoff(kind==='pass'?`${who} ha dicho pasapalabra.`:`${who} ha fallado.`)}
+function answer(){const p=P(),x=p.items[p.pos],v=$('ans').value.trim();if(!v){$('flash').textContent='Escribe algo o di «Pasapalabra»';return}
+  x.said=v;if(x.ans.some(a=>norm(a)===norm(v))){x.st='ok';$('flash').textContent='¡Correcto!';after('ok')}
+  else{x.st='ko';$('flash').textContent=`No: era ${x.ans[0]}`;$('b'+p.pos).className='b ko';setTimeout(()=>after('ko'),st.players.length>1?900:700)}}
+$('form').onsubmit=e=>{e.preventDefault();answer()};$('ok').onclick=answer;
+$('pass').onclick=()=>{$('flash').textContent='Pasapalabra';after('pass')};
+$('handB').onclick=resume;
+function finish(){clearInterval(TM);st.over=true;$('game').hidden=true;$('end').hidden=false;
+  const r=st.players.map(p=>({n:p.name,ok:p.items.filter(x=>x.st==='ok').length,ko:p.items.filter(x=>x.st==='ko').length,p})).sort((a,b)=>b.ok-a.ok||a.ko-b.ko);
+  const tie=r.length>1&&r[0].ok===r[1].ok&&r[0].ko===r[1].ko;
+  $('winner').textContent=r.length===1?`${r[0].ok} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0].n}!`);
+  $('rank').innerHTML=r.map(x=>`<li><span>${esc(x.n)}</span><span>${x.ok} aciertos · ${x.ko} fallos</span></li>`).join('')+(st.code?`<li style="background:none;justify-content:center">Código ${fmt(st.code)}: ¡comparad los aciertos!</li>`:'');
+  $('sols').innerHTML=st.players.map(p=>`<details><summary>Soluciones del rosco de ${esc(p.name)}</summary><ul class="sol">${p.items.map(x=>`<li><b class="${x.st}">${x.l}</b> · ${esc(x.def)}: <b>${esc(x.ans[0])}</b>${x.st==='ko'?` (dijo «${esc(x.said)}»)`:''}</li>`).join('')}</ul></details>`).join('');
+  $('again').hidden=!!st.code;$('codeEnd').hidden=!st.code;window.scrollTo({top:0,behavior:'smooth'})}
+
+function begin(players,seedFn,code){clearInterval(TM);
+  st={players:players.map((n,i)=>({name:n,items:makeRosco(seedFn(i)),pos:0,time:cfg.time,done:false})),c:0,code};
+  $('codebar').hidden=!code;if(code)$('codebar').textContent='Partida con código '+fmt(code);
+  $('end').hidden=true;$('game').hidden=false;$('play').hidden=true;$('hand').hidden=false;
+  $('handT').textContent=players.length>1?`Empieza ${players[0]}`:(code?'Cuando estéis todos, pulsad a la vez':'¿Preparado?');
+  $('handS').textContent=`${cfg.time} segundos para ${ORDER.length} letras.`;$('handB').textContent='Empezar el rosco';score();window.scrollTo({top:0,behavior:'smooth'})}
+function names(){cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('rosco-cfg',cfg)}
+function startLocal(){names();let p=cfg.names.filter(Boolean);if(!p.length)p=['Jugador 1'];begin(p,()=>Math.floor(Math.random()*1e9),0)}
+function playCode(N){if(!(N>=100000&&N<=999999)){$('codeMsg').textContent='El código tiene que tener 6 números.';return}
+  names();$('codeMsg').textContent='';cfg.time=TIMES[N%3];renderSetup();begin([cfg.names[0]||'Jugador 1'],()=>N,N)}
+function renderSetup(){cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  $('times').innerHTML=TIMES.map(t=>`<button type="button" class="chip" data-t="${t}" aria-pressed="${cfg.time===t}">${t/60} minutos</button>`).join('');save('rosco-cfg',cfg)}
+$('times').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cfg.time=+b.dataset.t;renderSetup()};
+$('start').onclick=startLocal;$('again').onclick=startLocal;
+$('mkCode').onclick=()=>{const idx=TIMES.indexOf(cfg.time);let N;do{N=100000+Math.floor(Math.random()*900000)}while(N%3!==idx);playCode(N)};
+$('mkCode2').onclick=()=>$('mkCode').click();
+$('joinBtn').onclick=()=>playCode(parseInt($('joinCode').value.replace(/\D/g,''),10)||0);
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
+$('joinAgain').onclick=()=>{$('joinCode').value='';$('joinCode').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('joinCode').focus(),400)};
+$('toSetup').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{names();if(st&&!st.code&&!$('hand').hidden&&st.players.every(p=>p.time===cfg.time&&p.items.every(x=>x.st==='p')))startLocal()}));
+renderSetup();startLocal();
+}
+</script>
+</body>
+</html>

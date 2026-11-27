@@ -100,6 +100,17 @@ h1 span{color:var(--sun)}
 .rul .art{background:#3b1f7a;border-radius:22px 22px 0 0}.rul .info{border-radius:0 0 22px 22px}.rul h2{font-family:Fredoka}.rul .play{background:#3b1f7a;border-radius:12px}
 .mini{width:140px;height:140px;border-radius:50%;border:5px solid #ffd23f;background:conic-gradient(#e2463c 0 12.5%,#2e9e5b 0 25%,#2342b8 0 37.5%,#ff9f43 0 50%,#111 0 62.5%,#8e44ad 0 75%,#16a085 0 87.5%,#ffd23f 0);box-shadow:0 8px 0 #0003}
 .miniptr{position:absolute;top:14px;left:50%;transform:translateX(-50%);border-left:12px solid transparent;border-right:12px solid transparent;border-top:22px solid #ffd23f}
+/* rosco y palabra */
+.ros .art{background:#0f2350;border-radius:22px 22px 0 0}.pal .art{background:#f4f5f7;border-radius:22px 22px 0 0}
+.ros .info,.pal .info{border-radius:0 0 22px 22px}.ros h2,.pal h2{font-family:Fredoka}
+.ros .play{background:#0f2350;border-radius:12px}.pal .play{background:#3a9a4a;border-radius:12px}
+.minirosco{position:relative;width:140px;height:140px}
+.minirosco span{position:absolute;width:34px;height:34px;border-radius:50%;background:#2b5fd9;color:#fff;display:grid;place-items:center;font:700 16px Fredoka,sans-serif;transform:translate(-50%,-50%)}
+.minirosco span.g{background:#2fb35a}.minirosco span.r{background:#e2463c}.minirosco span.y{background:#ffd23f;color:#14203d}
+.minirosco span:nth-child(1){left:50%;top:6%}.minirosco span:nth-child(2){left:81%;top:19%}.minirosco span:nth-child(3){left:94%;top:50%}.minirosco span:nth-child(4){left:81%;top:81%}
+.minirosco span:nth-child(5){left:50%;top:94%}.minirosco span:nth-child(6){left:19%;top:81%}.minirosco span:nth-child(7){left:6%;top:50%}.minirosco span:nth-child(8){left:19%;top:19%}
+.miniw{display:flex;gap:6px}.miniw i{width:40px;height:40px;display:grid;place-items:center;font:700 22px Fredoka,sans-serif;font-style:normal;color:#fff;border-radius:4px}
+.miniw i.g{background:#3a9a4a}.miniw i.y{background:#d6a72b}.miniw i.x{background:#7a7f88}
 .foot{margin-top:28px;color:#c9d4ff;font-size:14px}
 @media(max-width:600px){.grid{grid-template-columns:minmax(0,1fr)}.art{height:150px}}
 @media(prefers-reduced-motion:reduce){.game{transition:none}}
@@ -145,6 +156,14 @@ h1 span{color:var(--sun)}
     <a class="game rul" href="ruleta.html">
       <div class="art"><div class="mini"></div><div class="miniptr"></div></div>
       <div class="info"><h2>La ruleta</h2><p>Gira, di consonantes, compra vocales y resuelve el panel antes que nadie.</p><span class="play">Jugar</span></div>
+    </a>
+    <a class="game ros" href="rosco.html">
+      <div class="art"><div class="minirosco"><span>A</span><span class="g">B</span><span>C</span><span class="r">D</span><span class="y">E</span><span>F</span><span>G</span><span>H</span></div></div>
+      <div class="info"><h2>El rosco</h2><p>Una definición por cada letra del abecedario, contra el reloj. ¡Pasapalabra!</p><span class="play">Jugar</span></div>
+    </a>
+    <a class="game pal" href="palabra.html">
+      <div class="art"><div class="miniw"><i class="x">C</i><i class="y">A</i><i class="g">M</i><i class="x">P</i><i class="g">O</i></div></div>
+      <div class="info"><h2>La palabra del día</h2><p>Adivina la palabra de 5 letras en 6 intentos. Una nueva cada día para toda la familia.</p><span class="play">Jugar</span></div>
     </a>
   </div>
   <div class="install" id="inst" hidden><button id="instBtn">Instalar la aplicación</button></div>
