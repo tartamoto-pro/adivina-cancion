@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preguntas de One Piece</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2342b8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juegos">
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: aventura pirata alegre, letras grandes
+   IDEA: el cuaderno de bitácora de un barco: la pregunta escrita en una página de papel
+   PICTURE: tapa de madera de barco con la página dentro y una luz de farol
+   COLOUR and TYPE: azul mar, madera, papel claro, botones amarillo paja; Fredoka + Nunito
+   LAYOUT: una columna: marcador, cuaderno, 4 botones; ajustes debajo */
+:root{color-scheme:light dark;--bg:#e8f3fb;--shell:#7a4a24;--shell2:#5a3518;--lcd:#fbf3df;--lcd2:#e3d3a8;--lcdink:#1b2a3a;--btn:#f5d14a;--ink:#2a1a10;--on:#2a1a10;--ok:#2fb35a;--bad:#e2463c;--panel:#ffffff;--muted:#4d6478}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0b1722;--on:#f4ead8;--panel:#14263a;--muted:#a8bccd}}
+:root[data-theme=dark]{--bg:#0b1722;--on:#f4ead8;--panel:#14263a;--muted:#a8bccd}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--on);font:17px/1.5 Nunito,system-ui,sans-serif;overflow-x:clip;min-height:100vh}
+h1,h2{font-family:Fredoka,Nunito,sans-serif;font-weight:400;line-height:1.3;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:clamp(18px,4vw,36px) max(4vw,14px) 48px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:clamp(18px,4.6vw,26px);color:var(--shell)}
+:root[data-theme=dark] h1{color:#e9c46a}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) h1{color:#e9c46a}}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;min-height:48px;padding:10px 18px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--btn);outline-offset:2px}
+.ghost{background:var(--shell);color:#fff;font-weight:800}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pl{flex:1 1 120px;background:var(--panel);border-radius:12px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;border:3px solid transparent;font-weight:800;box-shadow:0 2px 0 #0002}
+.pl b{font-family:Fredoka,Nunito;font-size:18px}
+.pl.now{border-color:var(--shell)}
+.turn{font-weight:800;color:var(--shell);margin:0 0 8px;font-size:18px}
+:root[data-theme=dark] .turn{color:#e9c46a}
+.console{background:var(--shell);border-radius:20px 20px 48px 20px;padding:18px 18px 22px;box-shadow:0 8px 0 var(--shell2)}
+.bezel{background:#3b2410;border-radius:10px 10px 30px 10px;padding:14px 16px 18px}
+.led{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:#e8d3b0;margin-bottom:8px}
+.led i{width:10px;height:10px;border-radius:50%;background:#ffb347;box-shadow:0 0 8px #ffb347}
+.screen{background:var(--lcd);color:var(--lcdink);border-radius:6px;padding:16px;background-image:radial-gradient(circle at 20% 10%,#ffffff55,#0000 60%);box-shadow:inset 0 0 0 3px var(--lcd2)}
+.meta{font-size:14px;font-weight:800;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;opacity:.8}
+.q{font-weight:800;font-size:clamp(22px,5.4vw,30px);line-height:1.2;margin:10px 0 4px;text-wrap:balance}
+.fact{font-size:16px;min-height:24px;margin:0;font-weight:600}
+.brand{margin:10px 4px 0;font-family:Fredoka,Nunito;font-size:11px;color:#f0dcc0;opacity:.85}
+.bounce{animation:bn .5s ease 1}
+@keyframes bn{40%{transform:translateY(-8px)}}
+@media(prefers-reduced-motion:reduce){.bounce{animation:none}}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.opt{background:var(--btn);color:var(--ink);font-weight:800;font-size:clamp(17px,4.2vw,21px);line-height:1.2;min-height:76px;border-radius:16px;box-shadow:0 5px 0 #b8913a;transition:transform .1s}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #b8913a}
+.opt.good{background:var(--ok);color:#fff;box-shadow:0 5px 0 #1f7d3e}
+.opt.bad{background:var(--bad);color:#fff;box-shadow:0 5px 0 #a42d25}
+.opt:disabled{cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.row>*{flex:1 1 160px}
+.go{background:var(--shell);color:#fff;font-family:Fredoka,Nunito;font-size:14px;line-height:1.4;box-shadow:0 5px 0 var(--shell2)}
+.res{font-family:Fredoka,Nunito;font-size:15px;text-align:center;min-height:30px;margin:16px 0 0;color:var(--shell)}
+:root[data-theme=dark] .res{color:#e9c46a}
+.panel{background:var(--panel);border-radius:16px;padding:18px;margin-top:22px;box-shadow:0 2px 0 #0002}
+.panel h2{font-size:16px;margin-bottom:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:transparent;color:var(--on);font-weight:800;border:2px solid var(--muted);min-height:44px;padding:6px 14px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--shell);color:#fff;border-color:var(--shell)}
+label{display:block;font-weight:800;font-size:14px;margin:8px 0 4px;color:var(--muted)}
+input{font:inherit;font-size:16px;width:100%;min-height:46px;border-radius:10px;border:2px solid var(--muted);background:transparent;color:var(--on);padding:8px 12px}
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.note{font-size:14px;color:var(--muted);margin-top:14px}
+.end{text-align:center}
+.rank{list-style:none;padding:0;margin:16px 0;font-size:20px;font-weight:800}
+.rank li{background:var(--panel);border-radius:12px;padding:10px 14px;margin:6px 0;display:flex;justify-content:space-between}
+.rank li:first-child{background:var(--btn);color:var(--ink)}
+a.home{display:inline-flex;align-items:center;text-decoration:none;min-height:48px;padding:10px 18px;border-radius:12px}
+.duo{margin-top:22px;padding-top:18px;border-top:2px dashed currentColor}
+.duo h2{margin-bottom:6px}
+.join{display:flex;gap:8px}.join input{flex:1}.join button{flex:none}
+.codebar{font-weight:800;text-align:center;padding:8px 12px;border-radius:12px;border:2px dashed currentColor;margin:0 0 12px}
+.timer{height:12px;border-radius:99px;background:#00000026;overflow:hidden;margin-top:16px}
+.timer i{display:block;height:100%;width:100%;background:#ffc93c;border-radius:99px}
+#ready{width:100%;margin-top:16px;min-height:76px}
+[hidden]{display:none!important}
+@media(max-width:600px){.names{grid-template-columns:minmax(0,1fr)}.console{padding:14px 14px 18px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Preguntas de One Piece</h1>
+    <span style="display:flex;gap:8px;flex-wrap:wrap"><a class="ghost home" href="./">← Inicio</a><button class="ghost" id="newGame">Nueva partida</button></span>
+  </header>
+
+  <section id="game">
+    <p class="codebar" id="codebar" hidden></p>
+    <div class="score" id="score"></div>
+    <p class="turn" id="turn"></p>
+    <div class="console" id="blk">
+      <div class="bezel">
+        <div class="led"><i></i>Cuaderno de bitácora</div>
+        <div class="screen">
+          <div class="meta"><span id="num"></span><span id="cat"></span></div>
+          <p class="q" id="q"></p>
+          <p class="fact" id="fact"></p>
+        </div>
+      </div>
+      <p class="brand">Concurso pirata</p>
+    </div>
+    <div class="timer" aria-hidden="true"><i id="bar"></i></div>
+    <button class="go" id="ready" hidden></button>
+    <div class="opts" id="opts"></div>
+    <p class="res" id="res" aria-live="polite"></p>
+    <div class="row"><button class="go" id="next" hidden>Siguiente</button></div>
+  </section>
+
+  <section id="end" class="end" hidden>
+    <div class="console"><div class="bezel"><div class="screen"><p class="q" id="winner"></p><p class="fact">Fin de la partida</p></div></div></div>
+    <ol class="rank" id="rank"></ol>
+    <button class="go" id="again" style="width:100%">Jugar otra vez</button>
+    <div id="codeEnd" hidden><button class="go" id="mkCode2" style="width:100%">Crear otra partida con código</button><button class="ghost" id="joinAgain" style="width:100%;margin-top:10px">Unirme con un código nuevo</button></div>
+  </section>
+
+  <section class="panel" id="setup">
+    <h2>Ajustes</h2>
+    <label>Jugadores (deja en blanco los que no jueguen)</label>
+    <div class="names">
+      <input id="p0" value="Jugador 1" maxlength="14" aria-label="Jugador 1">
+      <input id="p1" value="Jugador 2" maxlength="14" aria-label="Jugador 2">
+      <input id="p2" value="" placeholder="Jugador 3" maxlength="14" aria-label="Jugador 3">
+      <input id="p3" value="" placeholder="Jugador 4" maxlength="14" aria-label="Jugador 4">
+    </div>
+    <label>Temas</label>
+    <div class="chips" id="cats"></div>
+    <label>Dificultad</label>
+    <div class="chips" id="lvls"></div>
+    <label>Preguntas para cada jugador</label>
+    <div class="chips" id="lens"></div>
+    <button class="go" id="start" style="width:100%">Empezar con estos ajustes</button>
+    <p class="note" id="count"></p>
+    <div class="duo">
+      <h2>Jugar en dos móviles</h2>
+      <p class="note">Crea una partida y dile el código al otro. Los dos tendréis las mismas preguntas en el mismo orden. Cada uno juega en su móvil con el nombre del Jugador 1 y al final comparáis los puntos.</p>
+      <button class="go" id="mkCode" style="width:100%">Crear partida con código</button>
+      <label for="joinCode">¿Te han dado un código?</label>
+      <div class="join"><input id="joinCode" inputmode="numeric" autocomplete="off" placeholder="Ej.: 123 456"><button class="go" id="joinBtn">Unirse</button></div>
+      <p class="note" id="codeMsg" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="note">Juego de preguntas hecho por fans para jugar en familia; no es un producto oficial de One Piece. Los nombres son los del anime en España.</p>
+</div>
+
+<script>
+{
+// [pregunta, respuesta, [falsas], tema, nivel 1=fácil 2=difícil]
+const Q=[
+["¿Cuál es el sueño de Luffy?", "Ser el Rey de los Piratas", ["Ser almirante de la Marina", "Encontrar el All Blue", "Dibujar un mapa del mundo"], "pers", 1],
+["¿Quién le regaló a Luffy su sombrero de paja?", "Shanks", ["Garp", "Ace", "Buggy"], "pers", 1],
+["¿Cuántas espadas usa Zoro para luchar?", "Tres", ["Una", "Dos", "Cuatro"], "pers", 1],
+["¿Cuál es el sueño de Zoro?", "Ser el mejor espadachín del mundo", ["Ser el Rey de los Piratas", "Encontrar el All Blue", "Tener un barco propio"], "pers", 1],
+["¿Qué le pasa siempre a Zoro cuando va solo?", "Se pierde", ["Se duerme", "Se marea", "Se enfada con Nami"], "pers", 1],
+["¿Qué hace Nami en la tripulación?", "Es la navegante", ["Es la cocinera", "Es la médica", "Es la carpintera"], "pers", 1],
+["¿Qué fruta le encanta a Nami y cultivaba en su pueblo?", "Mandarinas", ["Manzanas", "Fresas", "Plátanos"], "pers", 1],
+["¿Cuál es el sueño de Nami?", "Dibujar un mapa de todo el mundo", ["Ser la más rica", "Ser almirante", "Encontrar el One Piece"], "pers", 2],
+["¿Qué es Usopp en la tripulación?", "El tirador", ["El cocinero", "El navegante", "El timonel"], "pers", 1],
+["¿Qué tiene Usopp muy larga?", "La nariz", ["El pelo", "Las piernas", "Los brazos"], "pers", 1],
+["¿Qué es Sanji en la tripulación?", "El cocinero", ["El médico", "El músico", "El carpintero"], "pers", 1],
+["¿Con qué lucha Sanji?", "Con las piernas", ["Con espadas", "Con un bastón", "Con pistolas"], "pers", 1],
+["¿Qué mar legendario quiere encontrar Sanji?", "El All Blue", ["El Grand Line", "El East Blue", "El Calm Belt"], "pers", 2],
+["¿Qué animal es Chopper?", "Un reno", ["Un mapache", "Un oso", "Un perro"], "pers", 1],
+["¿Qué hace Chopper en la tripulación?", "Es el médico", ["Es el cocinero", "Es el músico", "Es el arqueólogo"], "pers", 1],
+["¿De qué color es la nariz de Chopper?", "Azul", ["Roja", "Negra", "Rosa"], "pers", 2],
+["¿Qué es Nico Robin?", "Arqueóloga", ["Navegante", "Cocinera", "Médica"], "pers", 1],
+["¿Qué hace Franky en la tripulación?", "Es el carpintero", ["Es el músico", "Es el timonel", "Es el tirador"], "pers", 1],
+["¿Qué palabra grita siempre Franky?", "¡Súper!", ["¡Genial!", "¡Yohoho!", "¡Carne!"], "pers", 1],
+["¿Qué es Brook?", "Un esqueleto músico", ["Un fantasma cocinero", "Un zombi espadachín", "Un hombre pez"], "pers", 1],
+["¿Qué es Jinbe?", "Un hombre pez", ["Un gigante", "Un mink", "Un ciborg"], "pers", 1],
+["¿Qué hace Jinbe en la tripulación?", "Es el timonel", ["Es el cocinero", "Es el médico", "Es el navegante"], "pers", 2],
+["¿Cuántos miembros tiene la tripulación del Sombrero de Paja con Jinbe?", "10", ["7", "9", "12"], "pers", 2],
+["¿Cómo se llaman los hermanos de Luffy?", "Ace y Sabo", ["Shanks y Buggy", "Zoro y Sanji", "Law y Kid"], "pers", 1],
+["¿Quién es el abuelo de Luffy?", "Garp", ["Rayleigh", "Barbablanca", "Roger"], "pers", 2],
+["¿Quién es el padre de Luffy?", "Monkey D. Dragon", ["Gol D. Roger", "Garp", "Shanks"], "pers", 2],
+["¿Qué perdió Shanks para salvar a Luffy de un rey marino?", "Un brazo", ["Un ojo", "Su sombrero", "Su barco"], "pers", 1],
+["¿Quién era el Rey de los Piratas antes de la historia?", "Gol D. Roger", ["Barbablanca", "Shanks", "Kaido"], "pers", 1],
+["¿Quién es el mejor espadachín del mundo al que Zoro quiere vencer?", "Dracule Mihawk", ["Shanks", "Kizaru", "Kuina"], "pers", 2],
+["¿Quién entrena a Luffy durante los dos años de separación?", "Rayleigh", ["Garp", "Shanks", "Jinbe"], "pers", 2],
+["¿Cómo se llama el padre de Usopp, que está en la tripulación de Shanks?", "Yasopp", ["Benn Beckman", "Lucky Roux", "Kaya"], "pers", 2],
+["¿Qué payaso pirata fue compañero de Shanks de pequeño?", "Buggy", ["Crocodile", "Enel", "Arlong"], "pers", 1],
+["¿Qué dos médicos enseñaron a Chopper?", "Hiluluk y Kureha", ["Law y Kureha", "Vegapunk y Hiluluk", "Kaya y Hiluluk"], "pers", 2],
+["¿Quién es el capitán de los Piratas Heart y médico?", "Trafalgar Law", ["Eustass Kid", "Bartolomeo", "Basil Hawkins"], "pers", 2],
+["¿A qué familia pertenece Sanji?", "Vinsmoke", ["Donquixote", "Charlotte", "Kozuki"], "pers", 2],
+["¿Qué no pueden hacer quienes comen una fruta del diablo?", "Nadar", ["Correr", "Dormir", "Comer carne"], "fruta", 1],
+["¿Qué poder tiene Luffy?", "Su cuerpo es de goma", ["Echa fuego", "Se vuelve de arena", "Controla el hielo"], "fruta", 1],
+["¿Qué fruta comió Chopper?", "Una que le da forma humana", ["Una de fuego", "Una de goma", "Una de hielo"], "fruta", 2],
+["¿Qué poder tiene Nico Robin?", "Hace aparecer brazos en cualquier sitio", ["Vuela", "Se hace invisible", "Controla el agua"], "fruta", 1],
+["¿Qué poder tiene Brook gracias a su fruta?", "Volver a la vida", ["Volar", "Ser invisible", "Ser de goma"], "fruta", 2],
+["¿De qué elemento era la fruta de Ace?", "Fuego", ["Hielo", "Rayo", "Arena"], "fruta", 1],
+["¿Qué poder tiene Buggy?", "Separar su cuerpo en trozos", ["Hacer burbujas", "Estirarse", "Volar"], "fruta", 1],
+["¿De qué es el poder de Crocodile?", "De arena", ["De barro", "De fuego", "De humo"], "fruta", 2],
+["¿Qué poder tiene Enel en Skypiea?", "El rayo", ["El viento", "El fuego", "La luz"], "fruta", 2],
+["¿Qué almirante tiene poderes de hielo?", "Aokiji", ["Akainu", "Kizaru", "Fujitora"], "fruta", 2],
+["¿Qué almirante tiene poderes de magma?", "Akainu", ["Aokiji", "Kizaru", "Ryokugyu"], "fruta", 2],
+["¿Qué almirante se mueve a la velocidad de la luz?", "Kizaru", ["Akainu", "Aokiji", "Fujitora"], "fruta", 2],
+["¿Qué poder tenía Barbablanca?", "Provocar terremotos", ["Controlar el fuego", "Hacer tormentas", "Volar"], "fruta", 2],
+["¿Qué poder tiene Doflamingo?", "Controlar hilos", ["Controlar el agua", "Hacer explosiones", "Transformarse en pájaro"], "fruta", 2],
+["¿En qué animal se transforma Kaido?", "En un dragón", ["En un tigre", "En un lobo", "En un fénix"], "fruta", 2],
+["¿Cómo se llama la transformación más poderosa de Luffy, con el pelo blanco?", "Gear 5", ["Gear 2", "Gear 3", "Gear 4"], "fruta", 1],
+["¿Cuántos tipos de haki hay?", "3", ["2", "4", "5"], "fruta", 2],
+["¿Qué haki permite sentir dónde están los demás?", "El de observación", ["El de armadura", "El del rey", "El del mar"], "fruta", 2],
+["¿Qué ataque básico hace Luffy estirando el brazo?", "Gomu Gomu no Pistol", ["Gomu Gomu no Bazooka", "Gomu Gomu no Gatling", "Gomu Gomu no Balloon"], "fruta", 1],
+["¿Cómo se llama el primer barco de los Sombrero de Paja?", "Going Merry", ["Thousand Sunny", "Red Force", "Moby Dick"], "mundo", 1],
+["¿Cómo se llama el segundo barco de los Sombrero de Paja?", "Thousand Sunny", ["Going Merry", "Oro Jackson", "Baratie"], "mundo", 1],
+["¿Quién construyó el Thousand Sunny?", "Franky", ["Usopp", "Iceburg", "Kaya"], "mundo", 1],
+["¿De qué mar es Luffy?", "Del East Blue", ["Del North Blue", "Del South Blue", "Del West Blue"], "mundo", 1],
+["¿Cómo se llama el mar más peligroso donde está el One Piece?", "El Grand Line", ["El East Blue", "El Calm Belt", "El All Blue"], "mundo", 1],
+["¿Cómo se llama el restaurante flotante donde trabajaba Sanji?", "El Baratie", ["La Taberna de Makino", "El Thousand Sunny", "El Going Merry"], "mundo", 1],
+["¿Qué pirata hombre pez tenía esclavizado el pueblo de Nami?", "Arlong", ["Jinbe", "Hody Jones", "Kuroobi"], "mundo", 1],
+["¿Qué reino del desierto salvan en la aventura de Vivi?", "Alabasta", ["Dressrosa", "Wano", "Skypiea"], "mundo", 1],
+["¿Cómo se llama la isla que está en el cielo?", "Skypiea", ["Water 7", "Thriller Bark", "Zou"], "mundo", 1],
+["¿A quién van a rescatar los Sombrero de Paja a Enies Lobby?", "A Robin", ["A Nami", "A Ace", "A Vivi"], "mundo", 2],
+["¿Cómo se llama la cárcel submarina de la que escapa Luffy?", "Impel Down", ["Marineford", "Enies Lobby", "Punk Hazard"], "mundo", 2],
+["¿En qué batalla muere Ace?", "Marineford", ["Wano", "Dressrosa", "Alabasta"], "mundo", 2],
+["¿Cuánto tiempo pasan separados los Sombrero de Paja para entrenar?", "Dos años", ["Un año", "Seis meses", "Cinco años"], "mundo", 1],
+["¿En qué archipiélago se separa la tripulación por culpa de Kuma?", "Sabaody", ["Wano", "Water 7", "Alabasta"], "mundo", 2],
+["¿Qué país de samuráis liberan de Kaido?", "Wano", ["Dressrosa", "Alabasta", "Elbaf"], "mundo", 1],
+["¿Qué villano gobernaba Dressrosa?", "Doflamingo", ["Kaido", "Crocodile", "Moria"], "mundo", 2],
+["¿Cómo se llama la ballena enorme amiga de Brook?", "Laboon", ["Moby Dick", "Momo", "Surume"], "mundo", 2],
+["¿En qué barco fantasma gigante vive Gecko Moria?", "Thriller Bark", ["Going Merry", "Flying Dutchman", "Oro Jackson"], "mundo", 2],
+["¿Cómo se llama la isla donde está el último tesoro, el One Piece?", "Laugh Tale", ["Raftel Blue", "Marineford", "Elbaf"], "mundo", 2],
+["¿Cómo se llaman los cuatro piratas más poderosos del mar?", "Los Cuatro Emperadores", ["Los Siete Señores de la Guerra", "Los Almirantes", "Las Supernovas"], "mundo", 2],
+["¿Qué científico genio vive en la isla de Egghead?", "Vegapunk", ["Caesar Clown", "Judge", "Hogback"], "mundo", 2],
+["¿Qué son los Den Den Mushi?", "Caracoles que sirven de teléfono", ["Peces voladores", "Barcos pequeños", "Monedas del mundo"], "mundo", 1],
+["¿Cómo se llama el dinero del mundo de One Piece?", "Berries", ["Doblones", "Piezas de oro", "Euros"], "mundo", 1],
+["¿Qué recompensa tuvo Luffy la primera vez?", "30 millones de berries", ["1 millón de berries", "100 millones de berries", "3.000 millones de berries"], "mundo", 2],
+["¿Qué es la Red Line?", "Un continente que rodea el mundo", ["Un barco de la Marina", "Un tipo de haki", "Una isla del cielo"], "mundo", 2],
+["¿Quién le regaló a los Sombrero de Paja el Going Merry?", "Kaya", ["Nojiko", "Vivi", "Makino"], "mundo", 2],
+["¿Quién es el autor del manga de One Piece?", "Eiichiro Oda", ["Akira Toriyama", "Masashi Kishimoto", "Tite Kubo"], "curi", 1],
+["¿En qué año empezó a publicarse el manga?", "1997", ["1990", "2001", "2005"], "curi", 2],
+["¿En qué año empezó el anime?", "1999", ["1995", "2003", "2010"], "curi", 2],
+["¿Qué comida le encanta a Luffy por encima de todo?", "La carne", ["El pescado", "La fruta", "El arroz"], "curi", 1],
+["¿Qué dibujo lleva la bandera pirata de Luffy?", "Una calavera con sombrero de paja", ["Una calavera con una espada", "Un ancla", "Un pez"], "curi", 1],
+["¿Qué le gusta comer a Chopper?", "Algodón de azúcar", ["Carne", "Pescado", "Mandarinas"], "curi", 2],
+["¿Qué bebida usa Franky como combustible?", "Cola", ["Leche", "Zumo", "Café"], "curi", 2],
+["¿Cómo se ríe Brook?", "Yohohoho", ["Shishishi", "Jajaja", "Zehahaha"], "curi", 2],
+["¿Cómo se ríe Luffy?", "Shishishi", ["Yohohoho", "Zehahaha", "Kishishi"], "curi", 2],
+["¿Qué plataforma estrenó en 2023 la serie de One Piece con actores reales?", "Netflix", ["Disney+", "HBO", "Prime Video"], "curi", 2],
+["¿Cómo se llama la espada blanca de Zoro que era de su amiga Kuina?", "Wado Ichimonji", ["Enma", "Shusui", "Yoru"], "curi", 2],
+["¿Qué arma usa Nami para controlar el tiempo?", "El Clima-Tact", ["Un abanico", "Una pistola", "Un tridente"], "curi", 2],
+["¿Cómo se llama la técnica de las tres espadas de Zoro?", "Santoryu", ["Ittoryu", "Rokushiki", "Rankyaku"], "curi", 2],
+["¿Qué tiene Sanji en las cejas?", "Un remolino", ["Una cicatriz", "Un piercing", "Nada"], "curi", 1],
+["¿Con qué letra de nombre comparten un misterio Luffy, Ace y Roger?", "La D", ["La M", "La G", "La R"], "curi", 2]];
+const CATS=[["pers", "Personajes"], ["fruta", "Frutas del diablo y poderes"], ["mundo", "Islas y aventuras"], ["curi", "Curiosidades"]];
+const LVLS=[["1","Fácil"],["2","Difícil"]];
+const LENS=[5,10,15,20];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ALL=Q.map(([q,ans,w,c,l])=>({q,ans,w,c,l:String(l)}));
+let cfg=load('op-cfg',{cats:CATS.map(c=>c[0]),lvls:["1","2"],len:10,names:["Jugador 1","Jugador 2","",""]});
+if(!LENS.includes(cfg.len))cfg.len=10;
+let st=null;
+function chips(el,list,isOn,toggle){
+  el.innerHTML=list.map(([k,t])=>`<button type="button" class="chip" data-k="${k}" aria-pressed="${isOn(k)}">${t}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;toggle(b.dataset.k);renderSetup()};
+}
+const pool=()=>ALL.filter(s=>cfg.cats.includes(s.c)&&cfg.lvls.includes(s.l));
+function renderSetup(){
+  cfg.names.forEach((n,i)=>{$('p'+i).value=n});
+  const tg=(arr,k)=>{const i=arr.indexOf(k);i<0?arr.push(k):arr.splice(i,1)};
+  const all=()=>CATS.every(c=>cfg.cats.includes(c[0]));
+  chips($('cats'),[["all","Todos los temas"],...CATS],k=>k==='all'?all():cfg.cats.includes(k),k=>{if(k==='all')cfg.cats=all()?[]:CATS.map(c=>c[0]);else tg(cfg.cats,k)});
+  chips($('lvls'),LVLS,k=>cfg.lvls.includes(k),k=>tg(cfg.lvls,k));
+  chips($('lens'),LENS.map(n=>[n,n]),k=>cfg.len==k,k=>{cfg.len=+k});
+  const n=pool().length;
+  $('count').textContent=n?`Hay ${n} preguntas disponibles con estos ajustes.`:'Elige al menos un tema y una dificultad.';
+  save('op-cfg',cfg);
+}
+const board=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function start(){
+  if(st)clearTimeout(st.timer);
+  $('codebar').hidden=true;
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());save('op-cfg',cfg);
+  let players=cfg.names.filter(Boolean);if(!players.length)players=['Jugador 1'];
+  const p=pool();
+  if(!p.length){renderSetup();$('setup').scrollIntoView({behavior:'smooth'});return}
+  const per=Math.max(1,Math.min(cfg.len,Math.floor(p.length/players.length)));
+  const need=per*players.length;
+  let seen=load('op-seen',[]);
+  const fresh=shuffle(p.filter(s=>!seen.includes(s.q)));
+  if(fresh.length<need){seen=[];save('op-seen',seen)}
+  const q=[...fresh,...shuffle(p.filter(s=>!fresh.includes(s)))].slice(0,need);
+  st={players,pts:players.map(()=>0),q,i:0,turn:0,wait:true,per};
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+function show(){
+  const s=st.q[st.i],n=st.players.length;
+  board();
+  $('turn').textContent=n>1?`Le toca a ${st.players[st.turn]}`:'';
+  $('num').textContent=n>1?`Ronda ${Math.floor(st.i/n)+1} de ${st.per}`:`Pregunta ${st.i+1} de ${st.q.length}`;
+  $('cat').textContent=CATS.find(c=>c[0]===s.c)[1]+(s.l==='2'?' · difícil':'');
+  $('q').textContent=s.q;$('fact').textContent='';$('res').textContent='';$('next').hidden=true;
+  $('opts').innerHTML=(st.code?sshuffle([s.ans,...s.w],rng(st.code*97+st.i)):shuffle([s.ans,...s.w])).map(o=>`<button class="opt" data-o="${esc(o)}">${esc(o)}</button>`).join('');
+}
+function answer(b){
+  const s=st.q[st.i],ok=b.dataset.o===s.ans;
+  const seen=load('op-seen',[]);if(!seen.includes(s.q)){seen.push(s.q);save('op-seen',seen)}
+  document.querySelectorAll('.opt').forEach(x=>{x.disabled=true;if(x.dataset.o===s.ans)x.classList.add('good')});
+  if(!ok)b.classList.add('bad');else st.pts[st.turn]++;
+  $('fact').textContent='Respuesta: '+s.ans;
+  $('res').textContent=ok?'¡Correcto! +1 punto':'¡Casi!';
+  const k=$('blk');k.classList.remove('bounce');void k.offsetWidth;if(ok)k.classList.add('bounce');
+  board();
+  const last=st.i+1>=st.q.length,nxt=st.players[(st.turn+1)%st.players.length];
+  $('next').hidden=false;$('next').textContent=last?'Ver resultados':(st.players.length>1?`Pasar a ${nxt}`:'Siguiente');
+  $('next').focus();
+  clearTimeout(st.timer);st.timer=setTimeout(next,ok?2200:3200);
+}
+function next(){
+  clearTimeout(st.timer);if($('next').hidden)return;
+  st.i++;st.turn=(st.turn+1)%st.players.length;
+  if(st.i<st.q.length){show();return}
+  $('next').hidden=true;
+  const r=st.players.map((n,i)=>[n,st.pts[i]]).sort((a,b)=>b[1]-a[1]);
+  const tie=r.length>1&&r[0][1]===r[1][1];
+  $('winner').textContent=r.length===1?`${r[0][1]} de ${st.q.length} aciertos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+  $('rank').innerHTML=r.map(([n,p])=>`<li><span>${esc(n)}</span><span>${p} de ${st.per}</span></li>`).join('');
+  $('game').hidden=true;$('end').hidden=false;
+  $('again').hidden=!!st.code;$('codeEnd').hidden=!st.code;
+  if(st.code){$('winner').textContent=`${st.pts[0]} de ${st.q.length} aciertos`;$('rank').innerHTML=`<li><span>Código ${fmt(st.code)}</span><span>¡Comparad los puntos!</span></li>`}
+}
+const enc=()=>{let b=0;CATS.forEach((c,i)=>{if(cfg.cats.includes(c[0]))b|=1<<i});LVLS.forEach((l,i)=>{if(cfg.lvls.includes(l[0]))b|=1<<(4+i)});return b|LENS.indexOf(cfg.len)<<6};
+const dec=b=>{cfg.cats=CATS.filter((c,i)=>b>>i&1).map(c=>c[0]);cfg.lvls=LVLS.filter((l,i)=>b>>(4+i)&1).map(l=>l[0]);cfg.len=LENS[b>>6&3]};
+const rng=seed=>()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const sshuffle=(a,r)=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmt=n=>String(n).replace(/(\d{3})(\d{3})/,'$1 $2');
+function playCode(N){
+  const seed=Math.floor(N/256),b=N%256;
+  if(!(seed>=400&&seed<=999)){$('codeMsg').textContent='Ese código no es válido. Tiene que tener 6 números.';return}
+  cfg.names=[0,1,2,3].map(i=>$('p'+i).value.trim());
+  dec(b);renderSetup();
+  const p=pool();
+  if(!p.length){$('codeMsg').textContent='Ese código no es válido.';return}
+  if(st)clearTimeout(st.timer);
+  const q=sshuffle(p,rng(N)).slice(0,Math.min(cfg.len,p.length));
+  st={players:[cfg.names[0]||'Jugador 1'],pts:[0],q,i:0,turn:0,per:q.length,code:N,wait:true,key:s=>s.p?s.p+s.ans:s.q};
+  $('codebar').hidden=false;$('codebar').textContent='Partida con código '+fmt(N);$('codeMsg').textContent='';
+  $('end').hidden=true;$('game').hidden=false;show();window.scrollTo({top:0,behavior:'smooth'});
+}
+$('mkCode').onclick=()=>{if(!pool().length){renderSetup();return}playCode((400+Math.floor(Math.random()*600))*256+enc())};
+$('joinBtn').onclick=()=>playCode(parseInt($('joinCode').value.replace(/\D/g,''),10)||0);
+$('mkCode2').onclick=()=>$('mkCode').click();
+$('joinAgain').onclick=()=>{$('joinCode').value='';$('joinCode').scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>$('joinCode').focus(),400)};
+$('joinCode').addEventListener('keydown',e=>{if(e.key==='Enter')$('joinBtn').click()});
+$('opts').onclick=e=>{const b=e.target.closest('.opt');if(b&&!b.disabled)answer(b)};
+$('next').onclick=next;$('start').onclick=start;$('again').onclick=start;
+$('newGame').onclick=()=>$('setup').scrollIntoView({behavior:'smooth'});
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{cfg.names[i]=$('p'+i).value.trim();save('op-cfg',cfg)}));
+
+// ===== Tiempo y puntos por rapidez =====
+const TOTAL=20;let QT=null;
+const cur=()=>st.q[st.i];
+const renderScore=()=>{$('score').innerHTML=st.players.map((n,i)=>`<div class="pl${i===st.turn?' now':''}"><span>${esc(n)}</span><b>${st.pts[i]}</b></div>`).join('')};
+function stopTimer(){clearTimeout(QT);const b=$('bar');b.style.width=getComputedStyle(b).width;b.style.transition='none'}
+function startQ(){
+  clearTimeout(QT);st.t0=performance.now();
+  const b=$('bar');b.style.transition='none';b.style.width='100%';void b.offsetWidth;
+  b.style.transition=`width ${TOTAL}s linear`;b.style.width='0%';
+  QT=setTimeout(()=>{if(!document.querySelector('.opt:disabled'))answer(null)},TOTAL*1000);
+}
+const _show=show;
+show=function(){
+  clearTimeout(QT);
+  if(!st.hits)st.hits=st.players.map(()=>0);
+  _show();renderScore();
+  const box=$('blk')||$('tape'),hb=$('hintBtn');
+  if((st.players.length>1&&!st.code)||st.wait){
+    $('opts').hidden=true;$('ready').hidden=false;box.hidden=true;if(hb)hb.style.visibility='hidden';
+    $('ready').textContent=st.wait?'Empezar la partida':`${st.players[st.turn]}, pulsa cuando estés listo`;
+    if(st.wait)$('res').textContent=st.code?`Código ${fmt(st.code)}. Cuando todos hayáis entrado, pulsad «Empezar».`:(st.players.length>1?`Empieza ${st.players[0]}. Pulsad cuando estéis listos.`:'Pulsa «Empezar» cuando estés listo.');
+    const b=$('bar');b.style.transition='none';b.style.width='100%';
+  }else{box.hidden=false;if(hb)hb.style.visibility='';$('opts').hidden=false;$('ready').hidden=true;startQ()}
+};
+[0,1,2,3].forEach(i=>$('p'+i).addEventListener('change',()=>{if(st&&!st.code&&st.wait&&st.i===0)start()}));
+$('ready').onclick=()=>{st.wait=false;const hb=$('hintBtn');if(hb)hb.style.visibility='';$('res').textContent='';$('ready').hidden=true;($('blk')||$('tape')).hidden=false;$('opts').hidden=false;startQ()};
+const _answer=answer;
+answer=function(b){
+  stopTimer();
+  const el=(performance.now()-st.t0)/1000,s=cur(),ok=!!b&&b.dataset.o===s.ans;
+  const gain=ok?Math.round(500+500*Math.max(0,1-el/TOTAL)):0;
+  const before=st.pts[st.turn];
+  _answer(b||{dataset:{o:'\u0000'},classList:{add(){}}});
+  st.pts[st.turn]=before+gain;if(ok)st.hits[st.turn]++;
+  renderScore();
+  $('res').textContent=ok?`¡Correcto! +${gain} puntos`:(b?'¡Casi! 0 puntos':'¡Se acabó el tiempo!');
+};
+const _next=next;
+next=function(){
+  clearTimeout(QT);_next();
+  if($('end').hidden)return;
+  const n=st.players.length,per=st.code?st.q.length:st.per;
+  const r=st.players.map((p,i)=>[p,st.pts[i],st.hits[i]]).sort((a,b)=>b[1]-a[1]);
+  if(st.code){
+    $('winner').textContent=`${r[0][1]} puntos`;
+    $('rank').innerHTML=`<li><span>${r[0][2]} de ${per} aciertos</span><span>Código ${fmt(st.code)}</span></li><li style="background:none;justify-content:center">¡Comparad los puntos!</li>`;
+  }else{
+    const tie=n>1&&r[0][1]===r[1][1];
+    $('winner').textContent=n===1?`${r[0][1]} puntos`:(tie?'¡Empate!':`¡Gana ${r[0][0]}!`);
+    $('rank').innerHTML=r.map(([p,pt,h])=>`<li><span>${esc(p)}</span><span>${pt} puntos · ${h}/${per}</span></li>`).join('');
+  }
+};
+$('next').onclick=next;
+renderSetup();start();
+}
+</script>
+</body>
+</html>
