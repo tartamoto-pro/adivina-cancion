@@ -67,15 +67,15 @@ rows = []
 songs = arr(read('canciones.html'), 'ES')
 for p, a, w, ar, y in songs:
     rows.append([f'Completa la canción de {ar}: «{p.strip()} ___»', a, w, 'canc', '2' if y < 2000 else '1'])
-for f, c in [('minecraft.html','mc'),('pokemon.html','pk'),('harrypotter.html','hp')]:
+for f, c in [('minecraft.html','mc'),('pokemon.html','pk'),('harrypotter.html','hp'),('onepiece.html','op')]:
     for q, a, w, _, l in arr(read(f), 'Q'): rows.append([q, a, w, c, str(l)])
 for q, a, w, _, l in arr(read('cole.html'), 'Q'):
     rows.append([q, a, w, 'cole', '1' if l in ('5','6') else '2'])
 total_q = 'const Q=[\n' + ',\n'.join(json.dumps(r, ensure_ascii=False) for r in rows) + '];'
-tot = swap_data(base, total_q, [["canc","Canciones"],["mc","Minecraft"],["pk","Pokémon"],["hp","Harry Potter"],["cole","Cole"]],
+tot = swap_data(base, total_q, [["canc","Canciones"],["mc","Minecraft"],["pk","Pokémon"],["hp","Harry Potter"],["op","One Piece"],["cole","Cole"]],
                 [["1","Fácil"],["2","Difícil"]], ["1","2"])
 tot = texts(tot, 'total', 'Trivial total', 'Trivial total', 'Todos los juegos',
-  'Mezcla preguntas de canciones, Minecraft, Pokémon, Harry Potter y el cole. En canciones, «difícil» son las de antes del 2000.',
+  'Mezcla preguntas de canciones, Minecraft, Pokémon, Harry Potter, One Piece y el cole. En canciones, «difícil» son las de antes del 2000.',
   """/* VOICE: gran concurso familiar, festivo y claro
    IDEA: el panel de un plató de concurso: la pregunta sale en la pantalla grande
    PICTURE: marco rojo de plató con pantalla azul noche y piloto
@@ -83,5 +83,9 @@ tot = texts(tot, 'total', 'Trivial total', 'Trivial total', 'Todos los juegos',
    LAYOUT: una columna: marcador, panel, 4 botones; ajustes debajo */""",
   {'--shell:#8a5a33':'--shell:#c0392b','--shell2:#6b4426':'--shell2:#922b21','--lcd:#2f5d46':'--lcd:#1d3557','--lcd2:#244a37':'--lcd2:#16294a',
    '--lcdink:#f4f7ef':'--lcdink:#f1f4ff','--btn:#f2d46b':'--btn:#ffd23f','--bg:#eef3ea':'--bg:#fff3e8','--bg:#121a15':'--bg:#1a1214','#5c3a1f':'#5a1d17'})
+# 6 temas: los bits de nivel y de número de preguntas se desplazan una posición
+for x, y in [('b|=1<<(5+i)','b|=1<<(6+i)'),('b>>(5+i)&1','b>>(6+i)&1'),('LENS.indexOf(cfg.len)<<9','LENS.indexOf(cfg.len)<<8'),('LENS[b>>9&3]','LENS[b>>8&3]')]:
+    assert x in tot, x
+    tot = tot.replace(x, y)
 open('total.html','w',encoding='utf8').write(tot)
 print('calculo ok; total', len(rows))
